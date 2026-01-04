@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- iOS PWA 設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="我的入口">
+    
+    <!-- Android PWA 設定 -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- icon.png 是你的 App 圖示，請準備一張圖片放在同資料夾 -->
+    <link rel="apple-touch-icon" href="icon.png"> 
+    <link rel="icon" type="image/png" href="icon.png">
+
+    <title>我的應用程式入口</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 搜尋框裝飾 -->
+    <div class="search-container">
+        <div class="search-bar">
+            🔍 搜索應用名稱...
+        </div>
+    </div>
+
+    <!-- 第一區塊 -->
+    <div class="category-title">常用網頁</div>
+    <div class="app-grid">
+        
+        <!-- 應用 1 -->
+        <a href="https://www.google.com" class="app-item" target="_blank">
+            <div class="app-icon" style="background: linear-gradient(135deg, #4285F4, #34A853);">G</div>
+            <span class="app-name">Google</span>
+        </a>
+
+        <!-- 應用 2 (請改成你的網址) -->
+        <a href="https://你的網址1.com" class="app-item">
+            <div class="app-icon" style="background: linear-gradient(135deg, #FF9966, #FF5E62);">網頁 A</div>
+            <span class="app-name">我的報表</span>
+        </a>
+
+        <!-- 應用 3 (請改成你的網址) -->
+        <a href="https://你的網址2.com" class="app-item">
+            <div class="app-icon" style="background: linear-gradient(135deg, #56CCF2, #2F80ED);">網頁 B</div>
+            <span class="app-name">公司系統</span>
+        </a>
+
+        <!-- 應用 4 -->
+        <a href="https://chatgpt.com" class="app-item">
+            <div class="app-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">AI</div>
+            <span class="app-name">ChatGPT</span>
+        </a>
+    </div>
+
+    <!-- 第二區塊 -->
+    <div class="category-title">生活工具</div>
+    <div class="app-grid">
+        <a href="#" class="app-item">
+            <div class="app-icon" style="background: linear-gradient(135deg, #8E2DE2, #4A00E0);">✈️</div>
+            <span class="app-name">航班查詢</span>
+        </a>
+        <a href="#" class="app-item">
+            <div class="app-icon" style="background: linear-gradient(135deg, #F2994A, #F2C94C);">🍔</div>
+            <span class="app-name">午餐吃啥</span>
+        </a>
+    </div>
+
+</body>
+</html>
