@@ -127,13 +127,13 @@
             display: none;
             flex-direction: column;
             
-            /* 預設背景色 (會被 JS 動態覆蓋) */
+            /* 背景色由 JS 控制 */
             background-color: var(--bg-color);
             
             padding-top: 0;
             padding-bottom: env(safe-area-inset-bottom);
             box-sizing: border-box; 
-            transition: background-color 0.3s; /* 讓顏色切換有過渡效果 */
+            transition: background-color 0.3s;
         }
 
         #content-frame {
@@ -141,27 +141,29 @@
             height: 100%;
             border: none;
             display: block;
-            transition: opacity 0.2s; /* 避免閃爍 */
+            transition: opacity 0.2s;
         }
 
-        /* 懸浮關閉按鈕 (右下角) */
+        /* ★★★ 修改重點：懸浮關閉按鈕移回左上角 ★★★ */
         .floating-close-btn {
             position: absolute;
-            bottom: calc(110px + env(safe-area-inset-bottom));
-            right: 20px;
             
-            /* 預設是適合深色背景的樣式 */
+            /* 左上角，避開瀏海 */
+            top: calc(15px + env(safe-area-inset-top));
+            left: 20px;
+            
+            /* 預設樣式：半透明黑底白字 */
             background-color: rgba(0, 0, 0, 0.5);
             color: rgba(255, 255, 255, 0.9);
             border: 1px solid rgba(255,255,255,0.15);
             
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 20px;
+            font-size: 18px; /* 稍微縮小一點字體 */
             font-weight: bold;
             
             z-index: 2000;
@@ -175,12 +177,11 @@
             transform: scale(0.9);
         }
 
-        /* 針對淺色背景的按鈕樣式 (JS 會切換這個 Class) */
+        /* 針對白色背景時，按鈕顏色變深一點，比較明顯 */
         .floating-close-btn.on-light-bg {
-            background-color: rgba(0, 0, 0, 0.8); /* 黑色背景 */
-            color: #ffffff; /* 白色叉叉 */
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
     </style>
@@ -203,19 +204,20 @@
             <span class="app-name">智慧平台</span>
         </div>
 
-        <!-- 2. 協勤記錄 (假設是深色) -->
+        <!-- 2. 協勤記錄 (深色) -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbxl84hhHB6vRFuz6mFhbGeHWCmhvU9o2J8tSWnKq8c3PuyB-SxHuawt1jc5W0cuoACI/exec', '#0b1121')">
             <div class="app-icon" style="background: linear-gradient(135deg, #8E2DE2, #4A00E0);">📝</div>
             <span class="app-name">協勤記錄</span>
         </div>
 
-        <!-- 3. 點班系統 (假設是深色) -->
+        <!-- 3. 點班系統 (深色) -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', '#0b1121')">
             <div class="app-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">📋</div>
             <span class="app-name">點班系統</span>
         </div>
 
         <!-- 4. 新人考核 (★ 指定為白色背景 #ffffff) -->
+        <!-- 注意：如果還是黑的，代表你需要去這個 Google Script 裡面把 CSS 背景改成白色 -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', '#ffffff')">
             <div class="app-icon" style="background: linear-gradient(135deg, #F2994A, #F2C94C);">🎓</div>
             <span class="app-name">新人考核</span>
@@ -254,7 +256,6 @@
     </div>
 
     <script>
-        // 主要顏色 (主畫面顏色)
         const MAIN_THEME_COLOR = '#0b1121';
 
         function openApp(url, bgColor) {
@@ -264,23 +265,20 @@
             var closeBtn = document.getElementById('close-btn');
 
             // 1. 設定背景顏色 (iframe 下面的底色)
-            // 如果沒有傳入顏色，預設使用深色
             var color = bgColor || MAIN_THEME_COLOR;
             viewer.style.backgroundColor = color;
-            frame.style.backgroundColor = color;
+            frame.style.backgroundColor = color; // 確保 iframe 背景也變色
 
             // 2. 設定瀏覽器狀態列顏色 (theme-color)
             metaTheme.setAttribute('content', color);
 
-            // 3. 判斷是否為淺色背景，調整關閉按鈕顏色
-            // 簡單判斷：如果是白色 (#ffffff 或 #fff)，按鈕就變深色
+            // 3. 判斷是否為白色背景，調整按鈕樣式
             if (color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#fff') {
                 closeBtn.classList.add('on-light-bg');
             } else {
                 closeBtn.classList.remove('on-light-bg');
             }
             
-            // 顯示視窗
             viewer.style.display = 'flex';
             frame.src = url; 
         }
