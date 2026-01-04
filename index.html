@@ -2,31 +2,30 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <!-- 關鍵：viewport-fit=cover 讓內容填滿瀏海區 -->
+    <!-- viewport-fit=cover 讓內容填滿瀏海區 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 設定為穿透式，讓背景色直接延伸到瀏海後面 -->
+    <!-- 穿透式狀態列 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
     
-    <!-- 設定 Android 頂部顏色 (改成跟你程式一樣的 #020617) -->
-    <meta name="theme-color" content="#020617">
+    <!-- ★★★ 修改：改成吸取你截圖背景的深藍色 #0b1121 ★★★ -->
+    <meta name="theme-color" content="#0b1121">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon1.jpg"> 
-    <link rel="icon" type="image/jpeg" href="icon1.jpg">
+    <link rel="apple-touch-icon" href="icon.jpg"> 
+    <link rel="icon" type="image/jpeg" href="icon.jpg">
 
     <title>海山救護義消智慧平台入口</title>
     
     <style>
         :root {
-            /* ★★★ 修改重點：這裡改成跟你程式一模一樣的深色 #020617 ★★★ */
-            --bg-color: #020617; 
+            /* ★★★ 修改：背景色同步 #0b1121 ★★★ */
+            --bg-color: #0b1121; 
             --text-color: #ffffff;
-            /* 卡片顏色稍微亮一點點，做出層次 */
-            --card-bg: #0f172a; 
+            --card-bg: #1e293b; 
         }
 
         body {
@@ -34,7 +33,6 @@
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            /* 讓入口網站的內容避開瀏海，但背景色會延伸上去 */
             padding-top: calc(20px + env(safe-area-inset-top)); 
             user-select: none;
             -webkit-tap-highlight-color: transparent;
@@ -45,7 +43,7 @@
         /* 搜尋框 */
         .search-container { padding: 0 0 20px 0; }
         .search-bar {
-            background-color: rgba(255,255,255,0.08); /* 稍微調深一點 */
+            background-color: rgba(255,255,255,0.08);
             padding: 12px;
             border-radius: 12px;
             color: #94a3b8;
@@ -132,7 +130,7 @@
             display: none;
             flex-direction: column;
             
-            /* ★★★ 這裡也改成 #020617，確保無縫接軌 ★★★ */
+            /* ★★★ 修改：背景改為 #0b1121，無縫接軌 ★★★ */
             background-color: var(--bg-color);
             
             padding-top: 0;
@@ -147,35 +145,42 @@
             height: 100%;
             border: none;
             display: block;
-            /* 讓 iframe 背景也預設深色，避免載入瞬間閃白 */
             background-color: var(--bg-color);
         }
 
-        /* 懸浮關閉按鈕 (右上角) */
+        /* ★★★ 修改重點：懸浮關閉按鈕改位置 ★★★ */
         .floating-close-btn {
             position: absolute;
-            top: calc(15px + env(safe-area-inset-top));
+            
+            /* 改到右下角，但往上提 110px，避開你的底部導覽列 */
+            bottom: calc(110px + env(safe-area-inset-bottom));
             right: 20px;
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            width: 40px;
-            height: 40px;
+            
+            background-color: rgba(0, 0, 0, 0.5); /* 半透明黑 */
+            color: rgba(255, 255, 255, 0.8);
+            
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 20px;
             font-weight: bold;
-            border: 1px solid rgba(255,255,255,0.2);
-            z-index: 1001;
+            
+            border: 1px solid rgba(255,255,255,0.15);
+            z-index: 2000; /* 確保在最上層 */
             backdrop-filter: blur(4px);
             cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            
+            transition: all 0.2s;
         }
 
         .floating-close-btn:active {
             background-color: rgba(255, 255, 255, 0.2);
             transform: scale(0.9);
+            color: white;
         }
     </style>
 </head>
@@ -190,7 +195,7 @@
     <div class="category-title">主要系統</div>
 
     <div class="app-grid">
-        <!-- 海山救護 (換上你的 GAS 連結) -->
+        <!-- 海山救護 -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec')">
             <div class="app-icon" style="background: linear-gradient(135deg, #FF416C, #FF4B2B);">🚑</div>
             <span class="app-name">智慧平台</span>
