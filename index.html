@@ -7,17 +7,17 @@
     <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="我的入口">
+    <meta name="apple-mobile-web-app-title" content="海山救護">
+    
+    <!-- 連結設定 -->
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.jpg"> 
     <link rel="icon" type="image/jpeg" href="icon.jpg">
 
-    <title>我的應用程式入口</title>
+    <title>海山救護義消智慧平台入口</title>
     <link rel="stylesheet" href="style.css">
     
     <style>
-        /* 這裡新增一些專門控制彈出視窗的 CSS */
-        
         /* 全螢幕網頁檢視器 (預設隱藏) */
         #web-viewer {
             position: fixed;
@@ -25,7 +25,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: white;
+            background: #f2f2f7;
             z-index: 1000;
             display: none; /* 預設不顯示 */
             flex-direction: column;
@@ -34,14 +34,15 @@
 
         /* 頂部導航列 */
         .viewer-header {
-            height: 50px;
+            height: 44px;
             background: #f8f8f8;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #c6c6c8;
             display: flex;
             align-items: center;
-            padding: 0 15px;
+            padding: 0 16px;
             padding-top: env(safe-area-inset-top); /* 避開瀏海 */
             justify-content: space-between;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.05);
         }
 
         /* 關閉按鈕 */
@@ -50,12 +51,13 @@
             border: none;
             color: #007AFF; /* iOS 藍色 */
             font-size: 17px;
-            font-weight: 600;
+            font-weight: 400;
             cursor: pointer;
+            padding: 5px 0;
         }
 
         .viewer-title {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 600;
             color: #000;
         }
@@ -79,39 +81,39 @@
 
     <!-- 主畫面內容 -->
     <div class="search-container">
-        <div class="search-bar">🔍 搜索應用名稱...</div>
+        <div class="search-bar">
+            🔍 搜尋功能...
+        </div>
     </div>
 
-    <div class="category-title">我的網頁</div>
+    <div class="category-title">主要系統</div>
     <div class="app-grid">
         
-        <!-- 
-           ⚠️ 注意：
-           onclick="openApp(...)" 是關鍵
-           如果網址是你自己的網頁，這招最有效。
-           如果是 Google/Yahoo，他們會拒絕被嵌入，所以還是得跳出去。
-        -->
-
-        <!-- 範例：你自己的網頁 (使用嵌入模式) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', '範例網頁')">
-            <div class="app-icon" style="background: linear-gradient(135deg, #FF9966, #FF5E62);">網頁</div>
-            <span class="app-name">我的網頁A</span>
+        <!-- 🚑 你的海山救護系統 (設定為內嵌開啟) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', '海山救護智慧平台')">
+            <div class="app-icon" style="background: linear-gradient(135deg, #FF416C, #FF4B2B);">🚑</div>
+            <span class="app-name">智慧平台</span>
         </div>
 
-        <!-- 範例：另一個你的網頁 -->
-        <div class="app-item" onclick="openApp('https://bing.com', 'Bing搜尋')">
-            <div class="app-icon" style="background: linear-gradient(135deg, #56CCF2, #2F80ED);">Bing</div>
-            <span class="app-name">Bing</span>
-        </div>
-
-        <!-- ⚠️ Google 不允許被嵌入，所以這裡保留原本 href 寫法，讓它跳出去 -->
+        <!-- 範例：Google (Google 不允許內嵌，所以保留 target="_blank" 跳出開啟) -->
         <a href="https://www.google.com" class="app-item" target="_blank">
             <div class="app-icon" style="background: linear-gradient(135deg, #4285F4, #34A853);">G</div>
             <span class="app-name">Google</span>
         </a>
 
-    </div>
+        <!-- 範例：ChatGPT -->
+        <a href="https://chatgpt.com" class="app-item" target="_blank">
+            <div class="app-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">AI</div>
+            <span class="app-name">ChatGPT</span>
+        </a>
 
+        <!-- 範例：地圖 -->
+        <a href="https://www.google.com/maps" class="app-item" target="_blank">
+            <div class="app-icon" style="background: linear-gradient(135deg, #FF9966, #FF5E62);">🗺️</div>
+            <span class="app-name">地圖</span>
+        </a>
+
+    </div>
 
     <!-- 這是全螢幕檢視器 (不用動它) -->
     <div id="web-viewer">
@@ -123,7 +125,6 @@
         <iframe id="content-frame" src=""></iframe>
     </div>
 
-
     <script>
         // 開啟網頁的函數
         function openApp(url, title) {
@@ -131,9 +132,12 @@
             var frame = document.getElementById('content-frame');
             var titleEl = document.getElementById('viewer-title');
 
-            frame.src = url; // 設定網址
-            titleEl.innerText = title; // 設定標題
-            viewer.style.display = 'flex'; // 顯示視窗
+            // 顯示載入中
+            titleEl.innerText = title;
+            viewer.style.display = 'flex';
+            
+            // 設定網址
+            frame.src = url; 
         }
 
         // 關閉網頁的函數
@@ -142,7 +146,11 @@
             var frame = document.getElementById('content-frame');
             
             viewer.style.display = 'none'; // 隱藏視窗
-            frame.src = ''; // 清空網址，避免背景繼續跑
+            
+            // 延遲一下再清空，避免畫面閃爍
+            setTimeout(function() {
+                frame.src = ''; 
+            }, 300);
         }
     </script>
 
