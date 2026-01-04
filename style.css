@@ -1,0 +1,94 @@
+:root {
+    --bg-color: #F2F2F7;
+    --text-color: #1C1C1E;
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    padding-top: max(20px, env(safe-area-inset-top)); /* 避開瀏海 */
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 搜尋框 */
+.search-container {
+    padding: 10px 0 20px 0;
+}
+.search-bar {
+    background-color: rgba(118, 118, 128, 0.12);
+    padding: 10px;
+    border-radius: 10px;
+    color: #8E8E93;
+    text-align: center;
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 分類標題 */
+.category-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 15px;
+    margin-top: 10px;
+    padding-left: 5px;
+}
+
+/* 網格排列 (每行4個) */
+.app-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 25px;
+    column-gap: 10px;
+    margin-bottom: 30px;
+}
+
+/* 單個 App */
+.app-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    position: relative;
+}
+
+/* App 圖示 */
+.app-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px; /* iOS 圓角風格 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 6px;
+    transition: transform 0.1s ease;
+    overflow: hidden;
+}
+
+/* 按下效果 */
+.app-item:active .app-icon {
+    transform: scale(0.92);
+    filter: brightness(0.8);
+}
+
+/* App 名稱 */
+.app-name {
+    font-size: 12px;
+    color: var(--text-color);
+    text-align: center;
+    width: 70px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
