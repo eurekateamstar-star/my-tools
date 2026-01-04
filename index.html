@@ -2,16 +2,14 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <!-- 讓內容延伸到滿版 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 設定為穿透式，讓背景色可以延伸 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
     
-    <!-- 設定 Android 頂部顏色 (改成你的深藍色) -->
+    <!-- 設定 Android 頂部顏色 -->
     <meta name="theme-color" content="#0d1326">
     
     <link rel="manifest" href="manifest.json">
@@ -22,10 +20,10 @@
     
     <style>
         :root {
-            /* 修改：這裡改成吸取你截圖的「深藍色」背景 */
+            /* 背景色：深藍色 */
             --bg-color: #0d1326; 
             --text-color: #ffffff;
-            --card-bg: #1e293b; /* 稍微亮一點的藍色做卡片 */
+            --card-bg: #1e293b;
         }
 
         body {
@@ -43,7 +41,7 @@
         /* 搜尋框 */
         .search-container { padding: 0 0 20px 0; }
         .search-bar {
-            background-color: rgba(255,255,255,0.1); /* 半透明白 */
+            background-color: rgba(255,255,255,0.1);
             padding: 12px;
             border-radius: 12px;
             color: #ccc;
@@ -95,7 +93,7 @@
             color: white;
             font-size: 28px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* 加深陰影 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             margin-bottom: 8px;
             transition: transform 0.1s ease;
             overflow: hidden;
@@ -109,7 +107,7 @@
 
         .app-name {
             font-size: 13px;
-            color: #cbd5e1; /* 藍灰色文字 */
+            color: #cbd5e1;
             text-align: center;
             width: 74px;
             white-space: nowrap;
@@ -118,49 +116,45 @@
             line-height: 1.2;
         }
 
-        /* --- 全螢幕檢視器 --- */
+        /* --- 全螢幕檢視器 (修正重點) --- */
         #web-viewer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100vh;
+            height: 100vh; /* 佔滿整個螢幕高度 */
             z-index: 1000;
             display: none;
             flex-direction: column;
-            
-            /* 修改：背景改成深藍色，這樣如果網頁載入慢，也不會閃白光 */
-            background-color: var(--bg-color); 
+            background-color: var(--bg-color); /* 確保底部空出來的地方也是深藍色 */
             
             padding-top: 0;
+            
+            /* ⚠️ 關鍵修正：增加底部安全距離，並確保它是算在高度內的 */
+            padding-bottom: env(safe-area-inset-bottom);
+            box-sizing: border-box; 
         }
 
         #content-frame {
             width: 100%;
-            height: 100%;
+            height: 100%; /* iframe 會自動填滿剩下的空間 */
             border: none;
             display: block;
         }
 
-        /* 修改：把按鈕移到右上角，變成一個圓形按鈕 */
+        /* 懸浮關閉按鈕 (右上角) */
         .floating-close-btn {
             position: absolute;
-            /* 定位在右上角 */
             top: calc(15px + env(safe-area-inset-top));
             right: 20px;
-            
-            background-color: rgba(0, 0, 0, 0.6); /* 黑色半透明 */
+            background-color: rgba(0, 0, 0, 0.6);
             color: white;
-            
-            /* 變成圓形 */
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            
             display: flex;
             justify-content: center;
             align-items: center;
-            
             font-size: 20px;
             font-weight: bold;
             border: 1px solid rgba(255,255,255,0.2);
@@ -220,11 +214,7 @@
     <!-- 全螢幕檢視器 -->
     <div id="web-viewer">
         <iframe id="content-frame" src=""></iframe>
-        
-        <!-- 改成顯示 X 的圓形按鈕，在右上角 -->
-        <button class="floating-close-btn" onclick="closeApp()">
-            ✕
-        </button>
+        <button class="floating-close-btn" onclick="closeApp()">✕</button>
     </div>
 
     <script>
