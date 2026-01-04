@@ -2,15 +2,17 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <!-- 關鍵：viewport-fit=cover 讓內容填滿瀏海區 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- 設定為穿透式，讓背景色直接延伸到瀏海後面 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
     
-    <!-- 設定 Android 頂部顏色 -->
-    <meta name="theme-color" content="#0d1326">
+    <!-- 設定 Android 頂部顏色 (改成跟你程式一樣的 #020617) -->
+    <meta name="theme-color" content="#020617">
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.jpg"> 
@@ -20,10 +22,11 @@
     
     <style>
         :root {
-            /* 背景色：深藍色 */
-            --bg-color: #0d1326; 
+            /* ★★★ 修改重點：這裡改成跟你程式一模一樣的深色 #020617 ★★★ */
+            --bg-color: #020617; 
             --text-color: #ffffff;
-            --card-bg: #1e293b;
+            /* 卡片顏色稍微亮一點點，做出層次 */
+            --card-bg: #0f172a; 
         }
 
         body {
@@ -31,6 +34,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             margin: 0;
             padding: 20px;
+            /* 讓入口網站的內容避開瀏海，但背景色會延伸上去 */
             padding-top: calc(20px + env(safe-area-inset-top)); 
             user-select: none;
             -webkit-tap-highlight-color: transparent;
@@ -41,10 +45,10 @@
         /* 搜尋框 */
         .search-container { padding: 0 0 20px 0; }
         .search-bar {
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255,255,255,0.08); /* 稍微調深一點 */
             padding: 12px;
             border-radius: 12px;
-            color: #ccc;
+            color: #94a3b8;
             text-align: center;
             font-size: 15px;
             display: flex;
@@ -52,6 +56,7 @@
             align-items: center;
             gap: 8px;
             backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         /* 分類標題 */
@@ -93,11 +98,11 @@
             color: white;
             font-size: 28px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
             margin-bottom: 8px;
             transition: transform 0.1s ease;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
         .app-item:active .app-icon {
@@ -116,30 +121,34 @@
             line-height: 1.2;
         }
 
-        /* --- 全螢幕檢視器 (修正重點) --- */
+        /* --- 全螢幕檢視器 --- */
         #web-viewer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100vh; /* 佔滿整個螢幕高度 */
+            height: 100vh;
             z-index: 1000;
             display: none;
             flex-direction: column;
-            background-color: var(--bg-color); /* 確保底部空出來的地方也是深藍色 */
+            
+            /* ★★★ 這裡也改成 #020617，確保無縫接軌 ★★★ */
+            background-color: var(--bg-color);
             
             padding-top: 0;
             
-            /* ⚠️ 關鍵修正：增加底部安全距離，並確保它是算在高度內的 */
+            /* 底部安全距離 */
             padding-bottom: env(safe-area-inset-bottom);
             box-sizing: border-box; 
         }
 
         #content-frame {
             width: 100%;
-            height: 100%; /* iframe 會自動填滿剩下的空間 */
+            height: 100%;
             border: none;
             display: block;
+            /* 讓 iframe 背景也預設深色，避免載入瞬間閃白 */
+            background-color: var(--bg-color);
         }
 
         /* 懸浮關閉按鈕 (右上角) */
@@ -181,7 +190,7 @@
     <div class="category-title">主要系統</div>
 
     <div class="app-grid">
-        <!-- 海山救護 -->
+        <!-- 海山救護 (換上你的 GAS 連結) -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec')">
             <div class="app-icon" style="background: linear-gradient(135deg, #FF416C, #FF4B2B);">🚑</div>
             <span class="app-name">智慧平台</span>
