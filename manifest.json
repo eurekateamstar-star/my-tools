@@ -1,6 +1,6 @@
 {
-  "name": "我的入口",
-  "short_name": "我的入口",
+  "name": "海山救護義消智慧平台入口",
+  "short_name": "海山救護義消智慧平台入口",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F2F2F7",
