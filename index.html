@@ -6,7 +6,7 @@
     
     <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- 改成穿透式狀態列 -->
     <meta name="apple-mobile-web-app-title" content="海山救護">
     
     <!-- 連結設定 -->
@@ -25,52 +25,51 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #f2f2f7;
+            background: #000; /* 背景改深色，避免載入時閃白光 */
             z-index: 1000;
-            display: none; /* 預設不顯示 */
+            display: none;
             flex-direction: column;
             animation: slideUp 0.3s ease-out;
+            padding-top: env(safe-area-inset-top); /* 避開瀏海，但不留白邊 */
         }
 
-        /* 頂部導航列 */
-        .viewer-header {
-            height: 44px;
-            background: #f8f8f8;
-            border-bottom: 1px solid #c6c6c8;
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            padding-top: env(safe-area-inset-top); /* 避開瀏海 */
-            justify-content: space-between;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.05);
-        }
-
-        /* 關閉按鈕 */
-        .close-btn {
-            background: none;
-            border: none;
-            color: #007AFF; /* iOS 藍色 */
-            font-size: 17px;
-            font-weight: 400;
-            cursor: pointer;
-            padding: 5px 0;
-        }
-
-        .viewer-title {
-            font-size: 17px;
-            font-weight: 600;
-            color: #000;
-        }
-
-        /* 網頁顯示區域 iframe */
+        /* 網頁顯示區域 iframe - 真正滿版 */
         #content-frame {
             flex: 1;
             width: 100%;
+            height: 100%;
             border: none;
             background: white;
         }
 
-        /* 動畫效果：從下往上滑入 */
+        /* 新增：懸浮返回按鈕 (取代原本的白色標題列) */
+        .floating-close-btn {
+            position: absolute;
+            bottom: 40px; /* 距離底部的位置 */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(50, 50, 50, 0.7); /* 半透明黑色 */
+            color: white;
+            padding: 10px 24px;
+            border-radius: 50px; /* 膠囊形狀 */
+            font-size: 15px;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.2);
+            z-index: 1001;
+            backdrop-filter: blur(8px); /* 毛玻璃特效 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            /* 確保在 iPhone 上不會被橫條擋住 */
+            margin-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* 按下按鈕的特效 */
+        .floating-close-btn:active {
+            transform: translateX(-50%) scale(0.95);
+            background-color: rgba(30, 30, 30, 0.9);
+        }
+
+        /* 動畫效果 */
         @keyframes slideUp {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
@@ -89,13 +88,13 @@
     <div class="category-title">主要系統</div>
     <div class="app-grid">
         
-        <!-- 🚑 你的海山救護系統 (設定為內嵌開啟) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', '海山救護智慧平台')">
+        <!-- 🚑 你的海山救護系統 -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec')">
             <div class="app-icon" style="background: linear-gradient(135deg, #FF416C, #FF4B2B);">🚑</div>
             <span class="app-name">智慧平台</span>
         </div>
 
-        <!-- 範例：Google (Google 不允許內嵌，所以保留 target="_blank" 跳出開啟) -->
+        <!-- 範例：Google (跳出開啟) -->
         <a href="https://www.google.com" class="app-item" target="_blank">
             <div class="app-icon" style="background: linear-gradient(135deg, #4285F4, #34A853);">G</div>
             <span class="app-name">Google</span>
@@ -115,39 +114,30 @@
 
     </div>
 
-    <!-- 這是全螢幕檢視器 (不用動它) -->
+    <!-- 全螢幕檢視器 -->
     <div id="web-viewer">
-        <div class="viewer-header">
-            <button class="close-btn" onclick="closeApp()">✕ 關閉</button>
-            <span class="viewer-title" id="viewer-title">載入中...</span>
-            <div style="width: 40px;"></div> <!-- 佔位用，讓標題置中 -->
-        </div>
         <iframe id="content-frame" src=""></iframe>
+        
+        <!-- 這就是新的懸浮按鈕 -->
+        <button class="floating-close-btn" onclick="closeApp()">
+            ✕ 返回選單
+        </button>
     </div>
 
     <script>
-        // 開啟網頁的函數
-        function openApp(url, title) {
+        function openApp(url) {
             var viewer = document.getElementById('web-viewer');
             var frame = document.getElementById('content-frame');
-            var titleEl = document.getElementById('viewer-title');
-
-            // 顯示載入中
-            titleEl.innerText = title;
-            viewer.style.display = 'flex';
             
-            // 設定網址
+            viewer.style.display = 'flex';
             frame.src = url; 
         }
 
-        // 關閉網頁的函數
         function closeApp() {
             var viewer = document.getElementById('web-viewer');
             var frame = document.getElementById('content-frame');
             
-            viewer.style.display = 'none'; // 隱藏視窗
-            
-            // 延遲一下再清空，避免畫面閃爍
+            viewer.style.display = 'none'; 
             setTimeout(function() {
                 frame.src = ''; 
             }, 300);
