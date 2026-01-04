@@ -4,71 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- iOS PWA 設定 -->
+    <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="我的入口">
-    
-    <!-- Android PWA 設定 -->
     <link rel="manifest" href="manifest.json">
-    
-    <!-- 修改重點：這裡已經改成 icon.jpg 了 -->
     <link rel="apple-touch-icon" href="icon.jpg"> 
     <link rel="icon" type="image/jpeg" href="icon.jpg">
 
     <title>我的應用程式入口</title>
     <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* 這裡新增一些專門控制彈出視窗的 CSS */
+        
+        /* 全螢幕網頁檢視器 (預設隱藏) */
+        #web-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            display: none; /* 預設不顯示 */
+            flex-direction: column;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        /* 頂部導航列 */
+        .viewer-header {
+            height: 50px;
+            background: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            padding-top: env(safe-area-inset-top); /* 避開瀏海 */
+            justify-content: space-between;
+        }
+
+        /* 關閉按鈕 */
+        .close-btn {
+            background: none;
+            border: none;
+            color: #007AFF; /* iOS 藍色 */
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .viewer-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        /* 網頁顯示區域 iframe */
+        #content-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: white;
+        }
+
+        /* 動畫效果：從下往上滑入 */
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- 搜尋框裝飾 -->
+    <!-- 主畫面內容 -->
     <div class="search-container">
-        <div class="search-bar">
-            🔍 搜索應用名稱...
-        </div>
+        <div class="search-bar">🔍 搜索應用名稱...</div>
     </div>
 
-    <!-- 第一區塊 -->
-    <div class="category-title">常用網頁</div>
+    <div class="category-title">我的網頁</div>
     <div class="app-grid">
         
-        <!-- 應用 1 -->
+        <!-- 
+           ⚠️ 注意：
+           onclick="openApp(...)" 是關鍵
+           如果網址是你自己的網頁，這招最有效。
+           如果是 Google/Yahoo，他們會拒絕被嵌入，所以還是得跳出去。
+        -->
+
+        <!-- 範例：你自己的網頁 (使用嵌入模式) -->
+        <div class="app-item" onclick="openApp('https://example.com', '範例網頁')">
+            <div class="app-icon" style="background: linear-gradient(135deg, #FF9966, #FF5E62);">網頁</div>
+            <span class="app-name">我的網頁A</span>
+        </div>
+
+        <!-- 範例：另一個你的網頁 -->
+        <div class="app-item" onclick="openApp('https://bing.com', 'Bing搜尋')">
+            <div class="app-icon" style="background: linear-gradient(135deg, #56CCF2, #2F80ED);">Bing</div>
+            <span class="app-name">Bing</span>
+        </div>
+
+        <!-- ⚠️ Google 不允許被嵌入，所以這裡保留原本 href 寫法，讓它跳出去 -->
         <a href="https://www.google.com" class="app-item" target="_blank">
             <div class="app-icon" style="background: linear-gradient(135deg, #4285F4, #34A853);">G</div>
             <span class="app-name">Google</span>
         </a>
 
-        <!-- 應用 2 (範例) -->
-        <a href="https://tw.yahoo.com" class="app-item">
-            <div class="app-icon" style="background: linear-gradient(135deg, #FF9966, #FF5E62);">網頁 A</div>
-            <span class="app-name">Yahoo</span>
-        </a>
-
-        <!-- 應用 3 (範例) -->
-        <a href="https://www.youtube.com" class="app-item">
-            <div class="app-icon" style="background: linear-gradient(135deg, #56CCF2, #2F80ED);">YT</div>
-            <span class="app-name">YouTube</span>
-        </a>
-
-        <!-- 應用 4 -->
-        <a href="https://chatgpt.com" class="app-item">
-            <div class="app-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">AI</div>
-            <span class="app-name">ChatGPT</span>
-        </a>
     </div>
 
-    <!-- 第二區塊 -->
-    <div class="category-title">生活工具</div>
-    <div class="app-grid">
-        <a href="#" class="app-item">
-            <div class="app-icon" style="background: linear-gradient(135deg, #8E2DE2, #4A00E0);">✈️</div>
-            <span class="app-name">航班查詢</span>
-        </a>
-        <a href="#" class="app-item">
-            <div class="app-icon" style="background: linear-gradient(135deg, #F2994A, #F2C94C);">🍔</div>
-            <span class="app-name">午餐吃啥</span>
-        </a>
+
+    <!-- 這是全螢幕檢視器 (不用動它) -->
+    <div id="web-viewer">
+        <div class="viewer-header">
+            <button class="close-btn" onclick="closeApp()">✕ 關閉</button>
+            <span class="viewer-title" id="viewer-title">載入中...</span>
+            <div style="width: 40px;"></div> <!-- 佔位用，讓標題置中 -->
+        </div>
+        <iframe id="content-frame" src=""></iframe>
     </div>
+
+
+    <script>
+        // 開啟網頁的函數
+        function openApp(url, title) {
+            var viewer = document.getElementById('web-viewer');
+            var frame = document.getElementById('content-frame');
+            var titleEl = document.getElementById('viewer-title');
+
+            frame.src = url; // 設定網址
+            titleEl.innerText = title; // 設定標題
+            viewer.style.display = 'flex'; // 顯示視窗
+        }
+
+        // 關閉網頁的函數
+        function closeApp() {
+            var viewer = document.getElementById('web-viewer');
+            var frame = document.getElementById('content-frame');
+            
+            viewer.style.display = 'none'; // 隱藏視窗
+            frame.src = ''; // 清空網址，避免背景繼續跑
+        }
+    </script>
 
 </body>
 </html>
