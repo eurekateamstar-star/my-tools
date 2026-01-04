@@ -6,6 +6,7 @@
     
     <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- 穿透式：讓背景延伸到瀏海 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
     
@@ -127,13 +128,14 @@
             display: none;
             flex-direction: column;
             
-            /* 背景色由 JS 控制 */
+            /* 背景色由 JS 強制覆蓋 */
             background-color: var(--bg-color);
             
             padding-top: 0;
+            /* 讓內容延伸到底部，但如果有需要避開 Home bar 可加 */
             padding-bottom: env(safe-area-inset-bottom);
             box-sizing: border-box; 
-            transition: background-color 0.3s;
+            transition: background-color 0.2s; /* 平滑過渡 */
         }
 
         #content-frame {
@@ -144,13 +146,13 @@
             transition: opacity 0.2s;
         }
 
-        /* ★★★ 修改重點：懸浮關閉按鈕移回左上角 ★★★ */
+        /* ★★★ 修改重點：懸浮關閉按鈕改回右上角 ★★★ */
         .floating-close-btn {
             position: absolute;
             
-            /* 左上角，避開瀏海 */
+            /* 右上角，避開瀏海 */
             top: calc(15px + env(safe-area-inset-top));
-            left: 20px;
+            right: 20px; /* 這裡改成 right */
             
             /* 預設樣式：半透明黑底白字 */
             background-color: rgba(0, 0, 0, 0.5);
@@ -163,7 +165,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 18px; /* 稍微縮小一點字體 */
+            font-size: 18px; 
             font-weight: bold;
             
             z-index: 2000;
@@ -177,11 +179,12 @@
             transform: scale(0.9);
         }
 
-        /* 針對白色背景時，按鈕顏色變深一點，比較明顯 */
+        /* 當背景是白色時，讓按鈕變成深黑色，不然會看不見 */
         .floating-close-btn.on-light-bg {
-            background-color: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            background-color: #000000;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: none;
         }
 
     </style>
@@ -198,7 +201,7 @@
 
     <div class="app-grid">
         
-        <!-- 1. 智慧平台 (維持深藍色背景) -->
+        <!-- 1. 智慧平台 (深色) -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', '#0b1121')">
             <div class="app-icon" style="background: linear-gradient(135deg, #FF416C, #FF4B2B);">🚑</div>
             <span class="app-name">智慧平台</span>
@@ -216,8 +219,7 @@
             <span class="app-name">點班系統</span>
         </div>
 
-        <!-- 4. 新人考核 (★ 指定為白色背景 #ffffff) -->
-        <!-- 注意：如果還是黑的，代表你需要去這個 Google Script 裡面把 CSS 背景改成白色 -->
+        <!-- 4. 新人考核 (★ 指定為白色 #ffffff) -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', '#ffffff')">
             <div class="app-icon" style="background: linear-gradient(135deg, #F2994A, #F2C94C);">🎓</div>
             <span class="app-name">新人考核</span>
@@ -265,9 +267,10 @@
             var closeBtn = document.getElementById('close-btn');
 
             // 1. 設定背景顏色 (iframe 下面的底色)
+            // 使用 !important 強制覆蓋
             var color = bgColor || MAIN_THEME_COLOR;
-            viewer.style.backgroundColor = color;
-            frame.style.backgroundColor = color; // 確保 iframe 背景也變色
+            viewer.style.setProperty('background-color', color, 'important');
+            frame.style.setProperty('background-color', color, 'important');
 
             // 2. 設定瀏覽器狀態列顏色 (theme-color)
             metaTheme.setAttribute('content', color);
