@@ -6,11 +6,9 @@
     
     <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 穿透式：讓背景延伸到瀏海 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
     
-    <!-- 預設主題顏色 (主畫面的深藍色) -->
     <meta name="theme-color" content="#0b1121" id="theme-color-meta">
     
     <link rel="manifest" href="manifest.json">
@@ -23,7 +21,6 @@
         :root {
             --bg-color: #0b1121; 
             --text-color: #ffffff;
-            --card-bg: #1e293b; 
         }
 
         body {
@@ -51,26 +48,28 @@
             justify-content: center;
             align-items: center;
             gap: 8px;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         /* 分類標題 */
         .category-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--text-color);
             margin-bottom: 20px;
             margin-top: 10px;
             padding-left: 5px;
+            letter-spacing: 0.5px;
         }
 
         /* 網格排列 */
         .app-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            row-gap: 30px;
-            column-gap: 15px;
+            row-gap: 32px;
+            column-gap: 16px;
             margin-bottom: 40px;
         }
 
@@ -81,172 +80,182 @@
             align-items: center;
             text-decoration: none;
             position: relative;
+            cursor: pointer;
         }
 
-        /* App 圖示 */
+        /* ★★★ 重點修改：App 圖示樣式 (仿 FunApp 水晶質感) ★★★ */
         .app-icon {
-            width: 68px;
-            height: 68px;
-            border-radius: 18px;
+            width: 66px;
+            height: 66px;
+            border-radius: 17px; /* iOS 風格圓角 */
+            
             display: flex;
             justify-content: center;
             align-items: center;
             color: white;
-            font-size: 28px;
+            font-size: 30px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            margin-bottom: 8px;
-            transition: transform 0.1s ease;
+            
+            position: relative;
             overflow: hidden;
+            margin-bottom: 8px;
+            
+            /* 1. 外陰影：創造懸浮感 */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2);
+            
+            /* 2. 邊框：增加精緻度 */
             border: 1px solid rgba(255,255,255,0.15);
+            
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* 3. 玻璃光澤特效 (上方亮光) */
+        .app-icon::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%);
+            pointer-events: none;
+        }
+
+        /* 4. 內部立體陰影 (下方暗影) */
+        .app-icon::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            box-shadow: inset 0 -4px 6px rgba(0,0,0,0.15), inset 0 2px 2px rgba(255,255,255,0.3);
+            border-radius: 17px;
+            pointer-events: none;
+        }
+
+        /* 按下去的縮小特效 */
         .app-item:active .app-icon {
             transform: scale(0.92);
-            filter: brightness(0.8);
+            filter: brightness(0.9);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* 按下去陰影變小 */
         }
 
         .app-name {
-            font-size: 13px;
-            color: #cbd5e1;
+            font-size: 12px;
+            color: #d1d5db;
             text-align: center;
             width: 74px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1.2;
+            line-height: 1.3;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8); /* 增加文字陰影，更清楚 */
         }
 
         /* --- 全螢幕檢視器 --- */
         #web-viewer {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 1000;
             display: none;
             flex-direction: column;
-            
-            /* 背景色由 JS 強制覆蓋 */
             background-color: var(--bg-color);
-            
             padding-top: 0;
-            /* 讓內容延伸到底部，但如果有需要避開 Home bar 可加 */
-            padding-bottom: env(safe-area-inset-bottom);
             box-sizing: border-box; 
-            transition: background-color 0.2s; /* 平滑過渡 */
+            transition: background-color 0.2s;
         }
 
         #content-frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
+            width: 100%; height: 100%; border: none; display: block;
             transition: opacity 0.2s;
         }
 
-        /* ★★★ 修改重點：懸浮關閉按鈕改回右上角 ★★★ */
+        /* 懸浮關閉按鈕 (右上角) */
         .floating-close-btn {
             position: absolute;
-            
-            /* 右上角，避開瀏海 */
             top: calc(15px + env(safe-area-inset-top));
-            right: 20px; /* 這裡改成 right */
-            
-            /* 預設樣式：半透明黑底白字 */
+            right: 20px;
             background-color: rgba(0, 0, 0, 0.5);
             color: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255,255,255,0.15);
-            
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px; 
-            font-weight: bold;
-            
+            border: 1px solid rgba(255,255,255,0.2);
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 18px; font-weight: bold;
             z-index: 2000;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             transition: all 0.2s;
         }
 
-        .floating-close-btn:active {
-            transform: scale(0.9);
-        }
+        .floating-close-btn:active { transform: scale(0.9); }
 
-        /* 當背景是白色時，讓按鈕變成深黑色，不然會看不見 */
         .floating-close-btn.on-light-bg {
             background-color: #000000;
             color: #ffffff;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             border: none;
         }
-
     </style>
 </head>
 <body>
 
     <div class="search-container">
         <div class="search-bar">
-            🔍 搜尋系統...
+            🔍 搜尋應用...
         </div>
     </div>
 
-    <div class="category-title">主要系統</div>
+    <div class="category-title">EMS 系統</div>
 
     <div class="app-grid">
         
-        <!-- 1. 智慧平台 (深色) -->
+        <!-- 1. 智慧平台 -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', '#0b1121')">
-            <div class="app-icon" style="background: linear-gradient(135deg, #FF416C, #FF4B2B);">🚑</div>
+            <!-- 我調整了漸層角度，讓它更有光澤感 -->
+            <div class="app-icon" style="background: linear-gradient(160deg, #FF6B8B 0%, #FF416C 100%);">🚑</div>
             <span class="app-name">智慧平台</span>
         </div>
 
-        <!-- 2. 協勤記錄 (深色) -->
+        <!-- 2. 協勤記錄 -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbxl84hhHB6vRFuz6mFhbGeHWCmhvU9o2J8tSWnKq8c3PuyB-SxHuawt1jc5W0cuoACI/exec', '#0b1121')">
-            <div class="app-icon" style="background: linear-gradient(135deg, #8E2DE2, #4A00E0);">📝</div>
+            <div class="app-icon" style="background: linear-gradient(160deg, #A855F7 0%, #6366F1 100%);">📝</div>
             <span class="app-name">協勤記錄</span>
         </div>
 
-        <!-- 3. 點班系統 (深色) -->
+        <!-- 3. 點班系統 -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', '#0b1121')">
-            <div class="app-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">📋</div>
+            <div class="app-icon" style="background: linear-gradient(160deg, #34D399 0%, #059669 100%);">📋</div>
             <span class="app-name">點班系統</span>
         </div>
 
-        <!-- 4. 新人考核 (★ 指定為白色 #ffffff) -->
+        <!-- 4. 新人考核 -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', '#ffffff')">
-            <div class="app-icon" style="background: linear-gradient(135deg, #F2994A, #F2C94C);">🎓</div>
+            <div class="app-icon" style="background: linear-gradient(160deg, #FBBF24 0%, #D97706 100%);">🎓</div>
             <span class="app-name">新人考核</span>
         </div>
+    </div>
 
+    <div class="category-title">常用工具</div>
 
-        <!-- 第二排：外部工具 -->
+    <div class="app-grid">
+        <!-- Google -->
         <a href="https://www.google.com" class="app-item" target="_blank">
-            <div class="app-icon" style="background: linear-gradient(135deg, #4285F4, #34A853);">G</div>
+            <div class="app-icon" style="background: linear-gradient(160deg, #60A5FA 0%, #2563EB 100%);">G</div>
             <span class="app-name">Google</span>
         </a>
 
+        <!-- ChatGPT -->
         <a href="https://chatgpt.com" class="app-item" target="_blank">
-            <div class="app-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">AI</div>
+            <div class="app-icon" style="background: linear-gradient(160deg, #2DD4BF 0%, #0D9488 100%);">AI</div>
             <span class="app-name">ChatGPT</span>
         </a>
 
+        <!-- Maps -->
         <a href="https://www.google.com/maps" class="app-item" target="_blank">
-            <div class="app-icon" style="background: linear-gradient(135deg, #FF9966, #FF5E62);">🗺️</div>
+            <div class="app-icon" style="background: linear-gradient(160deg, #FB923C 0%, #EA580C 100%);">🗺️</div>
             <span class="app-name">地圖</span>
         </a>
-    </div>
 
-    <div class="category-title">其他</div>
-    <div class="app-grid">
+        <!-- 班表 -->
          <a href="#" class="app-item">
-            <div class="app-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">📊</div>
+            <div class="app-icon" style="background: linear-gradient(160deg, #818CF8 0%, #4F46E5 100%);">📊</div>
             <span class="app-name">班表</span>
         </a>
     </div>
@@ -266,16 +275,12 @@
             var metaTheme = document.getElementById('theme-color-meta');
             var closeBtn = document.getElementById('close-btn');
 
-            // 1. 設定背景顏色 (iframe 下面的底色)
-            // 使用 !important 強制覆蓋
             var color = bgColor || MAIN_THEME_COLOR;
             viewer.style.setProperty('background-color', color, 'important');
             frame.style.setProperty('background-color', color, 'important');
 
-            // 2. 設定瀏覽器狀態列顏色 (theme-color)
             metaTheme.setAttribute('content', color);
 
-            // 3. 判斷是否為白色背景，調整按鈕樣式
             if (color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#fff') {
                 closeBtn.classList.add('on-light-bg');
             } else {
@@ -292,8 +297,6 @@
             var metaTheme = document.getElementById('theme-color-meta');
             
             viewer.style.display = 'none'; 
-            
-            // 恢復主畫面顏色
             metaTheme.setAttribute('content', MAIN_THEME_COLOR);
 
             setTimeout(function() {
