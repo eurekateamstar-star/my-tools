@@ -2,20 +2,17 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <!-- 關鍵：viewport-fit=cover 讓內容填滿瀏海區 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 設定為穿透式，讓背景色直接延伸到瀏海後面 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
     
-    <!-- 設定 Android 頂部顏色 (跟你程式一樣的 #0b1121) -->
-    <meta name="theme-color" content="#0b1121">
+    <!-- 預設主題顏色 (主畫面的深藍色) -->
+    <meta name="theme-color" content="#0b1121" id="theme-color-meta">
     
     <link rel="manifest" href="manifest.json">
-    <!-- 記得確認你的圖片檔名是 icon.jpg 還是 icon1.jpg -->
     <link rel="apple-touch-icon" href="icon1.jpg"> 
     <link rel="icon" type="image/jpeg" href="icon1.jpg">
 
@@ -23,7 +20,6 @@
     
     <style>
         :root {
-            /* 背景色：同步 #0b1121 */
             --bg-color: #0b1121; 
             --text-color: #ffffff;
             --card-bg: #1e293b; 
@@ -131,12 +127,13 @@
             display: none;
             flex-direction: column;
             
-            /* 背景與主畫面一致 */
+            /* 預設背景色 (會被 JS 動態覆蓋) */
             background-color: var(--bg-color);
             
             padding-top: 0;
             padding-bottom: env(safe-area-inset-bottom);
             box-sizing: border-box; 
+            transition: background-color 0.3s; /* 讓顏色切換有過渡效果 */
         }
 
         #content-frame {
@@ -144,7 +141,7 @@
             height: 100%;
             border: none;
             display: block;
-            background-color: var(--bg-color);
+            transition: opacity 0.2s; /* 避免閃爍 */
         }
 
         /* 懸浮關閉按鈕 (右下角) */
@@ -153,8 +150,10 @@
             bottom: calc(110px + env(safe-area-inset-bottom));
             right: 20px;
             
+            /* 預設是適合深色背景的樣式 */
             background-color: rgba(0, 0, 0, 0.5);
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255,255,255,0.15);
             
             width: 44px;
             height: 44px;
@@ -165,20 +164,25 @@
             font-size: 20px;
             font-weight: bold;
             
-            border: 1px solid rgba(255,255,255,0.15);
             z-index: 2000;
             backdrop-filter: blur(4px);
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             transition: all 0.2s;
         }
 
         .floating-close-btn:active {
-            background-color: rgba(255, 255, 255, 0.2);
             transform: scale(0.9);
-            color: white;
         }
+
+        /* 針對淺色背景的按鈕樣式 (JS 會切換這個 Class) */
+        .floating-close-btn.on-light-bg {
+            background-color: rgba(0, 0, 0, 0.8); /* 黑色背景 */
+            color: #ffffff; /* 白色叉叉 */
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
     </style>
 </head>
 <body>
@@ -192,32 +196,31 @@
     <div class="category-title">主要系統</div>
 
     <div class="app-grid">
-        <!-- 1. 智慧平台 -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec')">
+        
+        <!-- 1. 智慧平台 (維持深藍色背景) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', '#0b1121')">
             <div class="app-icon" style="background: linear-gradient(135deg, #FF416C, #FF4B2B);">🚑</div>
             <span class="app-name">智慧平台</span>
         </div>
 
-        <!-- 2. 協勤記錄 -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbxl84hhHB6vRFuz6mFhbGeHWCmhvU9o2J8tSWnKq8c3PuyB-SxHuawt1jc5W0cuoACI/exec')">
-            <!-- 紫色系圖示 -->
+        <!-- 2. 協勤記錄 (假設是深色) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbxl84hhHB6vRFuz6mFhbGeHWCmhvU9o2J8tSWnKq8c3PuyB-SxHuawt1jc5W0cuoACI/exec', '#0b1121')">
             <div class="app-icon" style="background: linear-gradient(135deg, #8E2DE2, #4A00E0);">📝</div>
             <span class="app-name">協勤記錄</span>
         </div>
 
-        <!-- 3. 點班系統 -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec')">
-            <!-- 綠色系圖示 -->
+        <!-- 3. 點班系統 (假設是深色) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', '#0b1121')">
             <div class="app-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">📋</div>
             <span class="app-name">點班系統</span>
         </div>
 
-        <!-- 4. 新人考核 -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec')">
-            <!-- 橘黃色系圖示 -->
+        <!-- 4. 新人考核 (★ 指定為白色背景 #ffffff) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', '#ffffff')">
             <div class="app-icon" style="background: linear-gradient(135deg, #F2994A, #F2C94C);">🎓</div>
             <span class="app-name">新人考核</span>
         </div>
+
 
         <!-- 第二排：外部工具 -->
         <a href="https://www.google.com" class="app-item" target="_blank">
@@ -247,14 +250,37 @@
     <!-- 全螢幕檢視器 -->
     <div id="web-viewer">
         <iframe id="content-frame" src=""></iframe>
-        <button class="floating-close-btn" onclick="closeApp()">✕</button>
+        <button id="close-btn" class="floating-close-btn" onclick="closeApp()">✕</button>
     </div>
 
     <script>
-        function openApp(url) {
+        // 主要顏色 (主畫面顏色)
+        const MAIN_THEME_COLOR = '#0b1121';
+
+        function openApp(url, bgColor) {
             var viewer = document.getElementById('web-viewer');
             var frame = document.getElementById('content-frame');
+            var metaTheme = document.getElementById('theme-color-meta');
+            var closeBtn = document.getElementById('close-btn');
+
+            // 1. 設定背景顏色 (iframe 下面的底色)
+            // 如果沒有傳入顏色，預設使用深色
+            var color = bgColor || MAIN_THEME_COLOR;
+            viewer.style.backgroundColor = color;
+            frame.style.backgroundColor = color;
+
+            // 2. 設定瀏覽器狀態列顏色 (theme-color)
+            metaTheme.setAttribute('content', color);
+
+            // 3. 判斷是否為淺色背景，調整關閉按鈕顏色
+            // 簡單判斷：如果是白色 (#ffffff 或 #fff)，按鈕就變深色
+            if (color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#fff') {
+                closeBtn.classList.add('on-light-bg');
+            } else {
+                closeBtn.classList.remove('on-light-bg');
+            }
             
+            // 顯示視窗
             viewer.style.display = 'flex';
             frame.src = url; 
         }
@@ -262,8 +288,13 @@
         function closeApp() {
             var viewer = document.getElementById('web-viewer');
             var frame = document.getElementById('content-frame');
+            var metaTheme = document.getElementById('theme-color-meta');
             
             viewer.style.display = 'none'; 
+            
+            // 恢復主畫面顏色
+            metaTheme.setAttribute('content', MAIN_THEME_COLOR);
+
             setTimeout(function() {
                 frame.src = ''; 
             }, 300);
