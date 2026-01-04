@@ -4,72 +4,181 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- PWA 設定 -->
+    <!-- PWA 設定 (關鍵修改) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- 改成穿透式狀態列 -->
+    <!-- 設定為 black-translucent 讓網頁內容可以延伸到瀏海後面 -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
     
-    <!-- 連結設定 -->
+    <!-- Android 狀態列顏色設定 (設為跟背景一樣的深色) -->
+    <meta name="theme-color" content="#1c1c1e">
+    
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.jpg"> 
     <link rel="icon" type="image/jpeg" href="icon.jpg">
 
     <title>海山救護義消智慧平台入口</title>
-    <link rel="stylesheet" href="style.css">
-    
+    <!-- 我們直接把 CSS 寫在這裡，確保覆蓋原本的設定 -->
     <style>
-        /* 全螢幕網頁檢視器 (預設隱藏) */
+        :root {
+            /* 這裡設定背景顏色：深灰色 (接近 iPhone 原生深色模式) */
+            --bg-color: #1c1c1e; 
+            --text-color: #ffffff;
+            --card-bg: #2c2c2e;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            /* 讓內容避開瀏海，但背景色會延伸上去 */
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top)); 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* 搜尋框 */
+        .search-container {
+            padding: 0 0 20px 0;
+        }
+        .search-bar {
+            background-color: var(--card-bg); /* 深色卡片背景 */
+            padding: 12px;
+            border-radius: 12px;
+            color: #8E8E93;
+            text-align: center;
+            font-size: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        /* 分類標題 */
+        .category-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            margin-top: 10px;
+            padding-left: 5px;
+            opacity: 0.9;
+        }
+
+        /* 網格排列 */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            row-gap: 30px;
+            column-gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        /* 單個 App */
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+        }
+
+        /* App 圖示 */
+        .app-icon {
+            width: 68px;
+            height: 68px;
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 28px; /* Emoji 大小 */
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+            transition: transform 0.1s ease;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1); /* 增加一點質感邊框 */
+        }
+
+        .app-item:active .app-icon {
+            transform: scale(0.92);
+            filter: brightness(0.8);
+        }
+
+        .app-name {
+            font-size: 13px;
+            color: #bfbfbf; /* 淺灰文字 */
+            text-align: center;
+            width: 74px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        /* --- 全螢幕檢視器 (控制瀏海顏色的關鍵) --- */
         #web-viewer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000; /* 背景改深色，避免載入時閃白光 */
+            /* 這裡設定當 App 開啟時，瀏海區域的顏色 */
+            background-color: var(--bg-color); 
             z-index: 1000;
             display: none;
             flex-direction: column;
-            animation: slideUp 0.3s ease-out;
-            padding-top: env(safe-area-inset-top); /* 避開瀏海，但不留白邊 */
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); /* iOS 風格滑動 */
+            
+            /* 關鍵：讓 iframe 下推，露出上方的背景色作為狀態列 */
+            padding-top: env(safe-area-inset-top); 
         }
 
-        /* 網頁顯示區域 iframe - 真正滿版 */
+        /* 網頁顯示區域 iframe */
         #content-frame {
             flex: 1;
             width: 100%;
             height: 100%;
             border: none;
-            background: white;
+            background: white; /* 你的系統內容是白色的 */
+            border-top-left-radius: 0px; 
+            border-top-right-radius: 0px; 
+            /* 如果想要圓角效果可以把上面改成 10px */
         }
 
-        /* 新增：懸浮返回按鈕 (取代原本的白色標題列) */
+        /* 懸浮返回按鈕 */
         .floating-close-btn {
             position: absolute;
-            bottom: 40px; /* 距離底部的位置 */
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(50, 50, 50, 0.7); /* 半透明黑色 */
+            background-color: rgba(40, 40, 40, 0.85); /* 深色毛玻璃 */
             color: white;
-            padding: 10px 24px;
-            border-radius: 50px; /* 膠囊形狀 */
-            font-size: 15px;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 16px;
             font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.15);
             z-index: 1001;
-            backdrop-filter: blur(8px); /* 毛玻璃特效 */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             cursor: pointer;
-            /* 確保在 iPhone 上不會被橫條擋住 */
             margin-bottom: env(safe-area-inset-bottom);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        /* 按下按鈕的特效 */
         .floating-close-btn:active {
-            transform: translateX(-50%) scale(0.95);
-            background-color: rgba(30, 30, 30, 0.9);
+            background-color: rgba(60, 60, 60, 0.95);
+            transform: translateX(-50%) scale(0.96);
         }
 
-        /* 動畫效果 */
         @keyframes slideUp {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
@@ -78,35 +187,38 @@
 </head>
 <body>
 
-    <!-- 主畫面內容 -->
+    <!-- 搜尋欄 -->
     <div class="search-container">
         <div class="search-bar">
-            🔍 搜尋功能...
+            🔍 搜尋應用...
         </div>
     </div>
 
+    <!-- 標題 -->
     <div class="category-title">主要系統</div>
+
+    <!-- App 列表 -->
     <div class="app-grid">
         
-        <!-- 🚑 你的海山救護系統 -->
+        <!-- 海山救護 (內嵌開啟) -->
         <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec')">
             <div class="app-icon" style="background: linear-gradient(135deg, #FF416C, #FF4B2B);">🚑</div>
             <span class="app-name">智慧平台</span>
         </div>
 
-        <!-- 範例：Google (跳出開啟) -->
+        <!-- Google (跳出) -->
         <a href="https://www.google.com" class="app-item" target="_blank">
             <div class="app-icon" style="background: linear-gradient(135deg, #4285F4, #34A853);">G</div>
             <span class="app-name">Google</span>
         </a>
 
-        <!-- 範例：ChatGPT -->
+        <!-- ChatGPT -->
         <a href="https://chatgpt.com" class="app-item" target="_blank">
             <div class="app-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">AI</div>
             <span class="app-name">ChatGPT</span>
         </a>
 
-        <!-- 範例：地圖 -->
+        <!-- Maps -->
         <a href="https://www.google.com/maps" class="app-item" target="_blank">
             <div class="app-icon" style="background: linear-gradient(135deg, #FF9966, #FF5E62);">🗺️</div>
             <span class="app-name">地圖</span>
@@ -114,11 +226,19 @@
 
     </div>
 
+    <div class="category-title">其他工具</div>
+    <div class="app-grid">
+        <a href="#" class="app-item">
+            <div class="app-icon" style="background: linear-gradient(135deg, #8E2DE2, #4A00E0);">📅</div>
+            <span class="app-name">班表</span>
+        </a>
+    </div>
+
     <!-- 全螢幕檢視器 -->
     <div id="web-viewer">
         <iframe id="content-frame" src=""></iframe>
         
-        <!-- 這就是新的懸浮按鈕 -->
+        <!-- 懸浮按鈕 -->
         <button class="floating-close-btn" onclick="closeApp()">
             ✕ 返回選單
         </button>
