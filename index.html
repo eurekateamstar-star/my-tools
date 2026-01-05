@@ -6,10 +6,10 @@
     
     <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 預設狀態列樣式，稍後透過 JS 動態切換 -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" id="status-bar-meta">
+    <!-- 設定為 black-translucent 讓內容能延伸，但我們會手動控制頂部顏色 -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
-    <meta name="theme-color" content="#0b1121" id="theme-color-meta">
+    <meta name="theme-color" content="#0b1121">
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon1.jpg"> 
@@ -128,44 +128,66 @@
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 1000; display: none; flex-direction: column;
             background-color: var(--bg-color);
-            padding-top: 0;
+            /* 預設 padding，會由 JS 動態調整 */
+            padding-top: env(safe-area-inset-top); 
             padding-bottom: env(safe-area-inset-bottom);
-            -webkit-overflow-scrolling: touch; 
             box-sizing: border-box; 
             transition: background-color 0.3s ease;
         }
 
-        #content-frame {
-            width: 1px; min-width: 100%; height: 100%; 
-            border: none; display: block;
-            transition: opacity 0.3s ease;
+        /* 頂部標題列 (偽裝成 Status Bar 背景) */
+        #fake-status-bar {
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            height: calc(10px + env(safe-area-inset-top)); /* 稍微加高一點 */
+            background-color: #0b1121; /* 永遠保持深色，確保時間可見 */
+            z-index: 2001;
+            display: none; /* 預設隱藏 */
+            box-shadow: 0 1px 10px rgba(0,0,0,0.1);
         }
 
-        /* 關閉按鈕 - 右上角 */
+        #content-frame {
+            width: 100%; height: 100%; 
+            border: none; display: block;
+            background-color: transparent;
+            flex: 1; /* 填滿剩餘空間 */
+        }
+
+        /* 關閉按鈕 - 改為整合在頂部區域 */
         .floating-close-btn {
             position: absolute;
-            top: calc(15px + env(safe-area-inset-top));
-            right: 20px; 
-            background-color: rgba(30, 30, 30, 0.6);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: rgba(255, 255, 255, 0.9);
-            width: 40px; height: 40px; border-radius: 50%;
+            top: calc(5px + env(safe-area-inset-top)); /* 調整位置貼齊頂部 */
+            right: 15px; 
+            background-color: rgba(50, 50, 50, 0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #ffffff;
+            width: 32px; height: 32px; border-radius: 50%; /* 稍微縮小 */
             display: flex; justify-content: center; align-items: center;
-            font-size: 16px; z-index: 2000;
-            backdrop-filter: blur(10px);
+            font-size: 14px; z-index: 2002;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
         }
 
         .floating-close-btn:active { transform: scale(0.9); }
         
-        /* 亮色背景下的關閉按鈕樣式 */
-        .floating-close-btn.on-light-bg { 
-            background-color: rgba(230, 230, 230, 0.85); 
-            color: #333; 
-            border: 1px solid rgba(0,0,0,0.1); 
+        /* 當啟用 Light Mode 時的特殊樣式 */
+        #web-viewer.light-mode {
+            background-color: #ffffff !important;
+            /* 在 Light Mode 下，頂部會顯示 fake-status-bar，所以 iframe 不要有 padding-top，而是由 bar 佔據空間 */
+            padding-top: calc(10px + env(safe-area-inset-top)) !important; 
         }
+
+        #web-viewer.light-mode #fake-status-bar {
+            display: block; /* 顯示黑色頂部條 */
+        }
+        
+        #web-viewer.light-mode .floating-close-btn {
+            background-color: transparent; /* 在黑色條上變成透明背景 */
+            border: none;
+            color: white; /* 確保在黑色條上是白色字 */
+            top: calc(0px + env(safe-area-inset-top)); /* 微調對齊 */
+        }
+
     </style>
 </head>
 <body>
@@ -179,26 +201,26 @@
     <div class="category-title">EMS 核心系統</div>
 
     <div class="app-grid">
-        <!-- 1. 智慧平台 (維持深色 #0b1121) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', '#0b1121')">
+        <!-- 1. 智慧平台 (深色模式) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', 'dark')">
             <div class="app-icon bg-medical"><i class="fa-solid fa-truck-medical"></i></div>
             <span class="app-name">智慧平台</span>
         </div>
 
-        <!-- 2. 協勤記錄 (★★★已修改為白色 #ffffff★★★) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', '#ffffff')">
+        <!-- 2. 協勤記錄 (白色模式) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', 'light')">
             <div class="app-icon bg-record"><i class="fa-solid fa-file-signature"></i></div>
             <span class="app-name">協勤記錄</span>
         </div>
 
-        <!-- 3. 點班系統 (維持深色 #0b1121) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', '#0b1121')">
+        <!-- 3. 點班系統 (深色模式) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', 'dark')">
             <div class="app-icon bg-check"><i class="fa-solid fa-clipboard-check"></i></div>
             <span class="app-name">點班系統</span>
         </div>
 
-        <!-- 4. 新人考核 (維持白色 #ffffff) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', '#ffffff')">
+        <!-- 4. 新人考核 (白色模式) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', 'light')">
             <div class="app-icon bg-exam"><i class="fa-solid fa-user-graduate"></i></div>
             <span class="app-name">新人考核</span>
         </div>
@@ -227,6 +249,9 @@
 
     <!-- 全螢幕檢視器 -->
     <div id="web-viewer">
+        <!-- 這是假裝的頂部欄，用來遮住黑邊並放置按鈕 -->
+        <div id="fake-status-bar"></div>
+        
         <iframe id="content-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
         
         <button id="close-btn" class="floating-close-btn" onclick="closeApp()">
@@ -235,35 +260,26 @@
     </div>
 
     <script>
-        const MAIN_THEME_COLOR = '#0b1121';
-
-        function openApp(url, bgColor) {
+        // 模式切換：'dark' 為深色，'light' 為白色
+        function openApp(url, mode) {
             var viewer = document.getElementById('web-viewer');
             var frame = document.getElementById('content-frame');
-            var metaTheme = document.getElementById('theme-color-meta');
-            var metaStatus = document.getElementById('status-bar-meta'); // 取得狀態列 meta
-            var closeBtn = document.getElementById('close-btn');
 
-            var color = bgColor || MAIN_THEME_COLOR;
-            var isLightMode = (color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#fff');
+            // 重置樣式
+            viewer.classList.remove('light-mode');
+            frame.style.backgroundColor = '';
 
-            // 1. 設定背景顏色
-            viewer.style.setProperty('background-color', color, 'important');
-            frame.style.setProperty('background-color', color, 'important');
-
-            // 2. 設定瀏覽器主題色 (Chrome/Safari Toolbar)
-            metaTheme.setAttribute('content', color);
-
-            // 3. 設定 iOS 狀態列文字顏色 (重要修改)
-            if (isLightMode) {
-                // 白色背景時，嘗試設定為 default (iOS 上為白底黑字)
-                // 注意：在已加入主畫面的 PWA 中，這可能需要重新載入才能生效，但在部分版本可動態切換
-                metaStatus.setAttribute('content', 'default'); 
-                closeBtn.classList.add('on-light-bg');
+            if (mode === 'light') {
+                // 白色模式：啟用 CSS 類別，顯示黑色頂部條，背景變白
+                viewer.classList.add('light-mode');
+                // iframe 背景設白
+                frame.style.backgroundColor = '#ffffff';
             } else {
-                // 深色背景時，設定為透明/黑色 (白字)
-                metaStatus.setAttribute('content', 'black-translucent');
-                closeBtn.classList.remove('on-light-bg');
+                // 深色模式：隱藏頂部條，全螢幕深色
+                viewer.style.backgroundColor = '#0b1121';
+                frame.style.backgroundColor = '#0b1121';
+                // 深色模式下，iframe 內容從頂部安全區域下開始
+                viewer.style.paddingTop = 'env(safe-area-inset-top)';
             }
             
             viewer.style.display = 'flex';
@@ -273,14 +289,9 @@
         function closeApp() {
             var viewer = document.getElementById('web-viewer');
             var frame = document.getElementById('content-frame');
-            var metaTheme = document.getElementById('theme-color-meta');
-            var metaStatus = document.getElementById('status-bar-meta');
             
             viewer.style.display = 'none'; 
-            
-            // 關閉時還原為深色主題
-            metaTheme.setAttribute('content', MAIN_THEME_COLOR);
-            metaStatus.setAttribute('content', 'black-translucent');
+            viewer.classList.remove('light-mode'); // 移除亮色模式標記
 
             setTimeout(function() {
                 frame.src = ''; 
