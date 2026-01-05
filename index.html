@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 設定為 black-translucent 讓內容能延伸，但我們會手動控制頂部顏色 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
     <meta name="theme-color" content="#0b1121">
@@ -15,7 +13,6 @@
     <link rel="apple-touch-icon" href="icon1.jpg"> 
     <link rel="icon" type="image/jpeg" href="icon1.jpg">
 
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <title>海山救護義消智慧平台入口</title>
@@ -24,6 +21,7 @@
         :root {
             --bg-color: #0b1121; 
             --text-color: #ffffff;
+            --header-height: 50px; /* 導航列高度 */
         }
 
         body {
@@ -123,69 +121,97 @@
         .bg-map { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); box-shadow: 0 8px 20px rgba(250, 112, 154, 0.3); }
         .bg-schedule { background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%); box-shadow: 0 8px 20px rgba(74, 0, 224, 0.3); }
 
-        /* --- 全螢幕視窗 --- */
+        /* --- 全螢幕視窗容器 --- */
         #web-viewer {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 1000; display: none; flex-direction: column;
             background-color: var(--bg-color);
-            /* 預設 padding，會由 JS 動態調整 */
-            padding-top: env(safe-area-inset-top); 
-            padding-bottom: env(safe-area-inset-bottom);
-            box-sizing: border-box; 
             transition: background-color 0.3s ease;
         }
 
-        /* 頂部標題列 (偽裝成 Status Bar 背景) */
-        #fake-status-bar {
-            position: absolute;
-            top: 0; left: 0; width: 100%;
-            height: calc(10px + env(safe-area-inset-top)); /* 稍微加高一點 */
-            background-color: #0b1121; /* 永遠保持深色，確保時間可見 */
-            z-index: 2001;
-            display: none; /* 預設隱藏 */
-            box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+        /* --- 仿原生 App 導航列 --- */
+        #nav-header {
+            width: 100%;
+            height: var(--header-height);
+            /* 加上頂部安全區域高度 */
+            padding-top: env(safe-area-inset-top); 
+            background-color: #0b1121; /* 固定深色背景 */
+            display: flex;
+            align-items: center;
+            justify-content: center; /* 標題置中 */
+            position: relative;
+            box-shadow: 0 1px 0 rgba(255,255,255,0.1); /* 底部細線 */
+            flex-shrink: 0; /* 防止被擠壓 */
+            z-index: 2000;
         }
 
-        #content-frame {
-            width: 100%; height: 100%; 
-            border: none; display: block;
-            background-color: transparent;
-            flex: 1; /* 填滿剩餘空間 */
-        }
-
-        /* 關閉按鈕 - 改為整合在頂部區域 */
-        .floating-close-btn {
-            position: absolute;
-            top: calc(5px + env(safe-area-inset-top)); /* 調整位置貼齊頂部 */
-            right: 15px; 
-            background-color: rgba(50, 50, 50, 0.5);
-            border: 1px solid rgba(255,255,255,0.1);
+        /* 導航列標題 */
+        #nav-title {
+            font-size: 17px;
+            font-weight: 600;
             color: #ffffff;
-            width: 32px; height: 32px; border-radius: 50%; /* 稍微縮小 */
-            display: flex; justify-content: center; align-items: center;
-            font-size: 14px; z-index: 2002;
+            letter-spacing: 0.5px;
+        }
+
+        /* 關閉按鈕 - 改為文字按鈕或圖示，放在導航列右側 */
+        .close-btn-nav {
+            position: absolute;
+            right: 15px;
+            top: env(safe-area-inset-top); /* 對齊標題 */
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3b82f6; /* iOS 藍色風格 */
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
-            backdrop-filter: blur(5px);
+            padding: 0 5px;
+        }
+        .close-btn-nav:active { opacity: 0.6; }
+        
+        /* 讓關閉按鈕看起來像圖示 */
+        .close-icon-circle {
+            width: 30px; height: 30px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            color: white;
         }
 
-        .floating-close-btn:active { transform: scale(0.9); }
-        
-        /* 當啟用 Light Mode 時的特殊樣式 */
-        #web-viewer.light-mode {
-            background-color: #ffffff !important;
-            /* 在 Light Mode 下，頂部會顯示 fake-status-bar，所以 iframe 不要有 padding-top，而是由 bar 佔據空間 */
-            padding-top: calc(10px + env(safe-area-inset-top)) !important; 
+        /* 內容 iframe 區域 */
+        #content-frame {
+            width: 100%; 
+            flex: 1; /* 佔滿剩餘空間 */
+            border: none; 
+            display: block;
+            background-color: #ffffff; /* 預設白色 */
+            /* 解決 iPhone 底部圓角或安全區問題 */
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
-        #web-viewer.light-mode #fake-status-bar {
-            display: block; /* 顯示黑色頂部條 */
+        /* 當在深色 App (如智慧平台) 時，隱藏導航列，讓全螢幕更沉浸 */
+        #web-viewer.fullscreen-mode #nav-header {
+            display: none;
         }
-        
-        #web-viewer.light-mode .floating-close-btn {
-            background-color: transparent; /* 在黑色條上變成透明背景 */
-            border: none;
-            color: white; /* 確保在黑色條上是白色字 */
-            top: calc(0px + env(safe-area-inset-top)); /* 微調對齊 */
+        #web-viewer.fullscreen-mode {
+            padding-top: env(safe-area-inset-top); /* 補回安全區 */
+            background-color: #0b1121;
+        }
+        /* 全螢幕模式下的懸浮關閉按鈕 */
+        #float-close-btn {
+            display: none; /* 預設隱藏 */
+            position: absolute;
+            top: calc(15px + env(safe-area-inset-top));
+            right: 20px;
+            width: 36px; height: 36px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            color: white;
+            justify-content: center; align-items: center;
+            backdrop-filter: blur(4px);
+            z-index: 3000;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
     </style>
@@ -201,26 +227,26 @@
     <div class="category-title">EMS 核心系統</div>
 
     <div class="app-grid">
-        <!-- 1. 智慧平台 (深色模式) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', 'dark')">
+        <!-- 1. 智慧平台 (全深色模式) -->
+        <div class="app-item" onclick="openApp('智慧平台', 'https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', 'dark')">
             <div class="app-icon bg-medical"><i class="fa-solid fa-truck-medical"></i></div>
             <span class="app-name">智慧平台</span>
         </div>
 
-        <!-- 2. 協勤記錄 (白色模式) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', 'light')">
+        <!-- 2. 協勤記錄 (白底 + 頂部導航列) -->
+        <div class="app-item" onclick="openApp('協勤記錄', 'https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', 'light')">
             <div class="app-icon bg-record"><i class="fa-solid fa-file-signature"></i></div>
             <span class="app-name">協勤記錄</span>
         </div>
 
-        <!-- 3. 點班系統 (深色模式) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', 'dark')">
+        <!-- 3. 點班系統 (全深色模式) -->
+        <div class="app-item" onclick="openApp('點班系統', 'https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', 'dark')">
             <div class="app-icon bg-check"><i class="fa-solid fa-clipboard-check"></i></div>
             <span class="app-name">點班系統</span>
         </div>
 
-        <!-- 4. 新人考核 (白色模式) -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', 'light')">
+        <!-- 4. 新人考核 (白底 + 頂部導航列) -->
+        <div class="app-item" onclick="openApp('新人考核', 'https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', 'light')">
             <div class="app-icon bg-exam"><i class="fa-solid fa-user-graduate"></i></div>
             <span class="app-name">新人考核</span>
         </div>
@@ -247,41 +273,49 @@
         </a>
     </div>
 
-    <!-- 全螢幕檢視器 -->
+    <!-- 全螢幕檢視器結構 -->
     <div id="web-viewer">
-        <!-- 這是假裝的頂部欄，用來遮住黑邊並放置按鈕 -->
-        <div id="fake-status-bar"></div>
         
-        <iframe id="content-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
-        
-        <button id="close-btn" class="floating-close-btn" onclick="closeApp()">
+        <!-- 頂部導航列 (Light Mode 顯示) -->
+        <div id="nav-header">
+            <div id="nav-title">標題</div>
+            <div class="close-btn-nav" onclick="closeApp()">
+                <div class="close-icon-circle"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+        </div>
+
+        <!-- 懸浮關閉按鈕 (Dark Mode 顯示) -->
+        <div id="float-close-btn" onclick="closeApp()">
             <i class="fa-solid fa-xmark"></i>
-        </button>
+        </div>
+
+        <iframe id="content-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
     </div>
 
     <script>
-        // 模式切換：'dark' 為深色，'light' 為白色
-        function openApp(url, mode) {
+        function openApp(title, url, mode) {
             var viewer = document.getElementById('web-viewer');
             var frame = document.getElementById('content-frame');
+            var navTitle = document.getElementById('nav-title');
+            var floatBtn = document.getElementById('float-close-btn');
 
-            // 重置樣式
-            viewer.classList.remove('light-mode');
-            frame.style.backgroundColor = '';
+            // 1. 設定標題
+            navTitle.innerText = title;
 
+            // 2. 判斷模式
             if (mode === 'light') {
-                // 白色模式：啟用 CSS 類別，顯示黑色頂部條，背景變白
-                viewer.classList.add('light-mode');
-                // iframe 背景設白
-                frame.style.backgroundColor = '#ffffff';
+                // 白底模式：顯示導航列，隱藏懸浮按鈕
+                viewer.classList.remove('fullscreen-mode');
+                floatBtn.style.display = 'none';
+                frame.style.backgroundColor = '#ffffff'; // 內容區白底
             } else {
-                // 深色模式：隱藏頂部條，全螢幕深色
-                viewer.style.backgroundColor = '#0b1121';
-                frame.style.backgroundColor = '#0b1121';
-                // 深色模式下，iframe 內容從頂部安全區域下開始
-                viewer.style.paddingTop = 'env(safe-area-inset-top)';
+                // 深色全螢幕模式：隱藏導航列，顯示懸浮按鈕
+                viewer.classList.add('fullscreen-mode');
+                floatBtn.style.display = 'flex';
+                frame.style.backgroundColor = '#0b1121'; // 內容區黑底
             }
             
+            // 3. 顯示介面
             viewer.style.display = 'flex';
             frame.src = url; 
         }
@@ -291,8 +325,7 @@
             var frame = document.getElementById('content-frame');
             
             viewer.style.display = 'none'; 
-            viewer.classList.remove('light-mode'); // 移除亮色模式標記
-
+            
             setTimeout(function() {
                 frame.src = ''; 
             }, 300);
