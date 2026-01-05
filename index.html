@@ -140,11 +140,11 @@
             transition: opacity 0.3s ease;
         }
 
-        /* 關閉按鈕 - 左上角 */
+        /* 關閉按鈕 - 改為右上角 */
         .floating-close-btn {
             position: absolute;
             top: calc(15px + env(safe-area-inset-top));
-            left: 20px; 
+            right: 20px; /* 從 left 改為 right */
             background-color: rgba(30, 30, 30, 0.6);
             border: 1px solid rgba(255,255,255,0.15);
             color: rgba(255, 255, 255, 0.9);
@@ -177,8 +177,8 @@
             <span class="app-name">智慧平台</span>
         </div>
 
-        <!-- 2. 協勤記錄 -->
-        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycbxl84hhHB6vRFuz6mFhbGeHWCmhvU9o2J8tSWnKq8c3PuyB-SxHuawt1jc5W0cuoACI/exec', '#0b1121')">
+        <!-- 2. 協勤記錄 (已更新網址) -->
+        <div class="app-item" onclick="openApp('https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', '#0b1121')">
             <div class="app-icon bg-record"><i class="fa-solid fa-file-signature"></i></div>
             <span class="app-name">協勤記錄</span>
         </div>
@@ -211,16 +211,15 @@
             <div class="app-icon bg-map"><i class="fa-solid fa-map-location-dot"></i></div>
             <span class="app-name">地圖</span>
         </a>
-         <a href="#" class="app-item">
+        <!-- 已修改為 協勤表單 並連結到 Google Sheets -->
+        <a href="https://docs.google.com/spreadsheets/d/1u-iyANnz3c8Vu_OathXEX8uqSPvbgWIQqghkbpPB-wU/edit?gid=157452443#gid=157452443" class="app-item" target="_blank">
             <div class="app-icon bg-schedule"><i class="fa-solid fa-calendar-days"></i></div>
-            <span class="app-name">班表</span>
+            <span class="app-name">協勤表單</span>
         </a>
     </div>
 
     <!-- 全螢幕檢視器 -->
     <div id="web-viewer">
-        <!-- ★★★ 關鍵修改：增加了 allow 屬性 ★★★ -->
-        <!-- camera *; microphone *; geolocation *; 這些是允許相機、麥克風、定位的關鍵 -->
         <iframe id="content-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
         
         <button id="close-btn" class="floating-close-btn" onclick="closeApp()">
