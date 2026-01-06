@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA 設定 -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
@@ -67,17 +68,15 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ★★★ 修改重點：歡迎詞樣式升級 ★★★ */
-        /* 把原本絕對定位改成流式佈局，並放大字體，變成大標題 */
+        /* 歡迎詞 */
         .user-welcome {
             font-size: 24px; 
             color: #ffffff; 
             font-weight: 700;
-            margin-bottom: 30px; /* 與下方內容的距離 */
+            margin-bottom: 30px; 
             margin-top: 10px;
             padding-left: 5px;
             letter-spacing: 0.5px;
-            /* 加一點漸層文字效果，看起來更高級 */
             background: linear-gradient(90deg, #ffffff, #94a3b8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -134,7 +133,7 @@
         .bg-map { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); box-shadow: 0 8px 20px rgba(250, 112, 154, 0.3); }
         .bg-schedule { background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%); box-shadow: 0 8px 20px rgba(74, 0, 224, 0.3); }
 
-        /* --- 全螢幕視窗容器 --- */
+        /* 視窗容器 */
         #web-viewer {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 1000; display: none; flex-direction: column;
@@ -142,7 +141,7 @@
             transition: background-color 0.3s ease;
         }
 
-        /* --- 頂部導航列 (Light Mode) --- */
+        /* 頂部導航列 (Light Mode) */
         #nav-header {
             width: 100%; height: var(--header-height); padding-top: env(safe-area-inset-top); 
             background-color: #0b1121; display: flex; align-items: center; justify-content: center;
@@ -159,13 +158,13 @@
             display: flex; justify-content: center; align-items: center; color: white;
         }
 
-        /* --- 內容 iframe --- */
+        /* 內容 iframe */
         #content-frame {
             width: 1px; min-width: 100%; flex: 1; border: none; display: block;
             background-color: #ffffff; padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* --- Dark Mode (全螢幕 + 懸浮按鈕) --- */
+        /* Dark Mode (全螢幕 + 懸浮按鈕) */
         #web-viewer.fullscreen-mode #nav-header { display: none; }
         #web-viewer.fullscreen-mode {
             padding-top: env(safe-area-inset-top); 
@@ -191,36 +190,40 @@
     <div id="lock-screen">
         <div class="loading-spinner" id="spinner"></div>
         <div class="status-text" id="status-text">系統驗證中...</div>
+        
+        <!-- 重置按鈕：防止卡死 -->
+        <button id="reset-btn" onclick="forceReset()" style="display:none; margin-top:20px; padding:10px 20px; background:#ef4444; color:white; border:none; border-radius:50px; font-weight:bold; cursor:pointer;">
+            <i class="fa-solid fa-rotate-right"></i> 重置系統
+        </button>
     </div>
 
     <!-- ★★★ 主要內容區 ★★★ -->
     <div id="main-content">
         
-        <!-- ★★★ 修改重點：移除搜尋框，讓名字變成大標題顯示 ★★★ -->
         <div id="user-display" class="user-welcome"></div>
 
         <div class="category-title">EMS 核心系統</div>
 
         <div class="app-grid">
-            <!-- 1. 智慧平台 (Dark Mode, 懸浮按鈕) -->
+            <!-- 1. 智慧平台 -->
             <div class="app-item" onclick="openApp('智慧平台', 'https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', 'dark')">
                 <div class="app-icon bg-medical"><i class="fa-solid fa-truck-medical"></i></div>
                 <span class="app-name">智慧平台</span>
             </div>
 
-            <!-- 2. 協勤記錄 (Light Mode, 頂部導航) -->
+            <!-- 2. 協勤記錄 -->
             <div class="app-item" onclick="openApp('協勤記錄', 'https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', 'light')">
                 <div class="app-icon bg-record"><i class="fa-solid fa-file-signature"></i></div>
                 <span class="app-name">協勤記錄</span>
             </div>
 
-            <!-- 3. 點班系統 (Dark Mode, 懸浮按鈕) -->
+            <!-- 3. 點班系統 -->
             <div class="app-item" onclick="openApp('點班系統', 'https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', 'dark')">
                 <div class="app-icon bg-check"><i class="fa-solid fa-clipboard-check"></i></div>
                 <span class="app-name">點班系統</span>
             </div>
 
-            <!-- 4. 新人考核 (Light Mode, 頂部導航) -->
+            <!-- 4. 新人考核 -->
             <div class="app-item" onclick="openApp('新人考核', 'https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', 'light')">
                 <div class="app-icon bg-exam"><i class="fa-solid fa-user-graduate"></i></div>
                 <span class="app-name">新人考核</span>
@@ -252,8 +255,7 @@
 
     <!-- 全螢幕檢視器 -->
     <div id="web-viewer">
-        
-        <!-- 頂部導航列 (Light Mode 顯示) -->
+        <!-- 頂部導航列 (Light Mode) -->
         <div id="nav-header">
             <div id="nav-title">標題</div>
             <div class="close-btn-nav" onclick="closeApp()">
@@ -261,34 +263,48 @@
             </div>
         </div>
 
-        <!-- 懸浮關閉按鈕 (Dark Mode 顯示) -->
+        <!-- 懸浮關閉按鈕 (Dark Mode) -->
         <div id="float-close-btn" onclick="closeApp()">
             <i class="fa-solid fa-xmark"></i>
         </div>
 
         <iframe id="content-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
     </div>
-</script>
-  
-   // ★★★ 請替換成你的設定 ★★★
+
+<script>
     const MY_LIFF_ID = "2008830494-0OA0heXb";
     const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
 
     window.onload = function() {
+        // 設定超時顯示重置按鈕
+        setTimeout(() => {
+            const resetBtn = document.getElementById('reset-btn');
+            if(resetBtn && document.getElementById('lock-screen').style.display !== 'none') {
+                resetBtn.style.display = 'block';
+                document.getElementById('status-text').innerText = "連線似乎有問題...";
+            }
+        }, 3000);
+
         const isAuthorized = localStorage.getItem('isAuthorized') === 'true';
         const savedUid = localStorage.getItem('currentUserId');
 
-        // ★★★ 修正邏輯：必須「已授權」且「有 UserID」才算通過 ★★★
+        // ★★★ 強力檢查：防止 null ID 混入 ★★★
         if (isAuthorized && savedUid && savedUid !== "null" && savedUid !== "undefined") {
             const savedName = localStorage.getItem('userName') || '';
             if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
             unlockScreen();
         } else {
-            // 資料不全或未登入，強制重新驗證 LINE
-            console.log("資料缺失，重新驗證 LIFF...");
+            console.log("需要驗證...");
             initializeLiff();
         }
     };
+
+    // 強制重置 (清除快取)
+    function forceReset() {
+        localStorage.clear();
+        alert("系統已重置，將重新載入。");
+        window.location.href = window.location.href.split('?')[0];
+    }
 
     function initializeLiff() {
         liff.init({ liffId: MY_LIFF_ID })
@@ -301,7 +317,8 @@
             })
             .catch(err => {
                 console.error(err);
-                document.getElementById('status-text').innerText = "系統初始化失敗，請重新整理";
+                document.getElementById('status-text').innerText = "初始化失敗";
+                document.getElementById('reset-btn').style.display = 'block';
             });
     }
 
@@ -315,10 +332,9 @@
             .then(response => response.json())
             .then(data => {
                 if (data.allowed) {
-                    // ★★★ 關鍵修改 1：把 UserID 存到本地 ★★★
                     localStorage.setItem('isAuthorized', 'true');
                     localStorage.setItem('userName', data.name);
-                    localStorage.setItem('currentUserId', userId); // 存下 ID
+                    localStorage.setItem('currentUserId', userId); 
                     
                     document.getElementById('user-display').innerText = "Hi, " + data.name;
                     unlockScreen();
@@ -326,7 +342,12 @@
                     document.getElementById('spinner').style.display = 'none';
                     document.getElementById('status-text').innerHTML = 
                         "⚠️ 無權限<br>ID: <div class='error-id'>" + userId + "</div>";
+                    document.getElementById('reset-btn').style.display = 'block';
                 }
+            })
+            .catch(err => {
+                 document.getElementById('status-text').innerHTML = "連線錯誤，請檢查網路";
+                 document.getElementById('reset-btn').style.display = 'block';
             });
         });
     }
@@ -348,18 +369,16 @@
         var navTitle = document.getElementById('nav-title');
         var floatBtn = document.getElementById('float-close-btn');
 
-        // ★★★ 關鍵修改 2：把 UserID 附加到網址後面傳給子系統 ★★★
         var userId = localStorage.getItem('currentUserId');
         var finalUrl = url;
         
-        // 判斷網址原本有沒有參數，決定要用 ? 還是 &
-        if (url.includes('?')) {
-            finalUrl += "&uid=" + userId;
-        } else {
-            finalUrl += "?uid=" + userId;
+        if (userId && userId !== "null") {
+            if (url.includes('?')) {
+                finalUrl += "&uid=" + userId;
+            } else {
+                finalUrl += "?uid=" + userId;
+            }
         }
-
-        console.log("開啟網址:", finalUrl); // 測試用，你會看到網址後面多了 uid=...
 
         navTitle.innerText = title;
 
