@@ -157,12 +157,6 @@
         display: flex; justify-content: center; align-items: center; color: white;
     }
 
-    /* 內容 iframe */
-    #content-frame {
-        width: 1px; min-width: 100%; flex: 1; border: none; display: block;
-        background-color: #ffffff; padding-bottom: env(safe-area-inset-bottom);
-    }
-
     /* Dark Mode (全螢幕 + 懸浮按鈕) */
     #web-viewer.fullscreen-mode #nav-header { display: none; }
     #web-viewer.fullscreen-mode {
@@ -179,6 +173,18 @@
         backdrop-filter: blur(4px); z-index: 3000;
         border: 1px solid rgba(255,255,255,0.2);
         cursor: pointer;
+    }
+
+    /* ★★★ 修改重點：Iframe 樣式與狀態管理 ★★★ */
+    .app-frame {
+        width: 1px; min-width: 100%; flex: 1; border: none; 
+        padding-bottom: env(safe-area-inset-bottom);
+        display: none; /* 預設全部隱藏 */
+    }
+    
+    /* 只有被加上 active 的 iframe 才會顯示 */
+    .app-frame.active {
+        display: block;
     }
 
 </style>
@@ -266,18 +272,24 @@
         <i class="fa-solid fa-xmark"></i>
     </div>
 
-    <iframe id="content-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
+    <!-- ★★★ 修改重點：雙 Iframe 架構 ★★★ -->
+    
+    <!-- 1. 主系統專用 (Main Frame)：永遠保持載入狀態，不清除，不重整 -->
+    <iframe id="main-frame" class="app-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
+    
+    <!-- 2. 臨時視窗 (Temp Frame)：給其他 App 使用，每次打開都重載，關閉即清除 -->
+    <iframe id="temp-frame" class="app-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
+
 </div>
 <script>
     // ★★★ 設定區 ★★★
     const MY_LIFF_ID = "2008830494-0OA0heXb";
     const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
     
-    // 設定要「預先偷跑」的主系統網址 (智慧平台)
+    // 智慧平台的原始網址 (用於比對和預載)
     const MAIN_APP_URL = "https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec";
-
-    // 全域變數
-    let currentLoadedUrl = ""; // 紀錄目前 iframe 正在跑哪個網址
+    // 用於識別主系統的關鍵字 (Google Script ID 的一部分，確保準確)
+    const MAIN_APP_ID_PART = "AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL";
 
     window.onload = function() {
         // 防止卡死重置按鈕
@@ -298,7 +310,7 @@
             
             unlockScreen();
             
-            // ★★★ 關鍵修改：解鎖後，馬上在背景預載主系統！ ★★★
+            // 驗證通過後，立刻在背景預載主系統
             preloadMainApp(savedUid);
             
         } else {
@@ -307,10 +319,10 @@
         }
     };
 
-    // ★★★ 新增：預先載入函式 ★★★
+    // ★★★ 預先載入函式 (只針對 Main Frame) ★★★
     function preloadMainApp(userId) {
         console.log("🚀 開始背景預載主系統...");
-        const frame = document.getElementById('content-frame');
+        const mainFrame = document.getElementById('main-frame');
         
         // 組裝帶有 UID 的網址
         let targetUrl = MAIN_APP_URL;
@@ -320,64 +332,84 @@
             targetUrl += "?uid=" + userId;
         }
 
-        // 偷偷設定 iframe 的網址 (這時候使用者看不到，但已經在跑了)
-        frame.src = targetUrl;
-        currentLoadedUrl = MAIN_APP_URL; // 記住現在跑的是主系統
+        // 設定主系統 iframe，之後這個 iframe 就不會再換網址了
+        mainFrame.src = targetUrl;
     }
 
+    // ★★★ 開啟 App 邏輯 (區分主系統和其他系統) ★★★
     function openApp(title, url, mode) {
         var viewer = document.getElementById('web-viewer');
-        var frame = document.getElementById('content-frame');
+        var mainFrame = document.getElementById('main-frame');
+        var tempFrame = document.getElementById('temp-frame');
         var navTitle = document.getElementById('nav-title');
         var floatBtn = document.getElementById('float-close-btn');
         var userId = localStorage.getItem('currentUserId');
 
         navTitle.innerText = title;
 
-        // 設定介面模式 (Light/Dark)
-        if (mode === 'light') {
-            viewer.classList.remove('fullscreen-mode');
-            floatBtn.style.display = 'none';
-            frame.style.backgroundColor = '#ffffff'; 
-        } else {
-            viewer.classList.add('fullscreen-mode');
-            floatBtn.style.display = 'flex';
-            frame.style.backgroundColor = '#0b1121'; 
-        }
-
-        // ★★★ 關鍵修改：判斷是否已經預載好了 ★★★
+        // 判斷是否為「智慧平台 (主系統)」
+        const isMainApp = url.includes(MAIN_APP_ID_PART);
         
-        // 1. 如果點擊的網址 == 已經在跑的網址 (例如點了智慧平台)
-        if (url === currentLoadedUrl) {
-            console.log("⚡ 命中預載！直接顯示，不重新載入");
-            // 什麼都不用做，直接 show 出來就好
-            // 因為 src 早就設定好了，資料也可能已經跑好了
-        } 
-        // 2. 如果點的是別的系統 (例如點班系統)
-        else {
-            console.log("🔄 切換系統，重新載入");
-            
+        // 決定目前要操作的 Frame
+        let activeFrame;
+
+        if (isMainApp) {
+            console.log("⚡ 開啟智慧平台 (使用快取，不重整)");
+            // 顯示 Main，隱藏 Temp
+            mainFrame.classList.add('active');
+            tempFrame.classList.remove('active');
+            activeFrame = mainFrame;
+            // 注意：這裡完全不碰 src，讓它保持背景執行的狀態
+        } else {
+            console.log("🔄 開啟其他功能 (強制載入新網址)");
+            // 隱藏 Main，顯示 Temp
+            mainFrame.classList.remove('active');
+            tempFrame.classList.add('active');
+            activeFrame = tempFrame;
+
             // 組裝網址
             let finalUrl = url;
             if (userId && userId !== "null") {
                 if (url.includes('?')) finalUrl += "&uid=" + userId;
                 else finalUrl += "?uid=" + userId;
             }
-            
-            // 載入新網址
-            frame.src = finalUrl;
-            currentLoadedUrl = url; // 更新紀錄
+
+            // 強制載入新頁面
+            tempFrame.src = finalUrl;
         }
-        
+
+        // 設定介面模式 (Light/Dark)
+        if (mode === 'light') {
+            viewer.classList.remove('fullscreen-mode');
+            floatBtn.style.display = 'none';
+            activeFrame.style.backgroundColor = '#ffffff'; 
+        } else {
+            viewer.classList.add('fullscreen-mode');
+            floatBtn.style.display = 'flex';
+            activeFrame.style.backgroundColor = '#0b1121'; 
+        }
+
         // 顯示視窗
         viewer.style.display = 'flex';
     }
 
+    // ★★★ 關閉 App 邏輯 ★★★
     function closeApp() {
         var viewer = document.getElementById('web-viewer');
-        // 注意：關閉時不要清空 src，這樣下次打開主系統才會是秒開的狀態
-        // 只有當使用者想要「重整」時才需要清空，但在這裡保留 src 體驗比較好
+        var tempFrame = document.getElementById('temp-frame');
+        var mainFrame = document.getElementById('main-frame');
+
+        // 隱藏視窗
         viewer.style.display = 'none'; 
+        
+        // 移除顯示狀態
+        tempFrame.classList.remove('active');
+        mainFrame.classList.remove('active');
+
+        // ★★★ 關鍵：清空暫存 Frame ★★★
+        // 這樣下次打開其他功能時，不會閃過上一次的畫面
+        // 而 Main Frame 則保留不動
+        tempFrame.src = "about:blank";
     }
 
     // --- 以下為原本的輔助功能 (保持不變) ---
@@ -418,7 +450,7 @@
                     document.getElementById('user-display').innerText = "Hi, " + data.name;
                     unlockScreen();
                     
-                    // ★★★ 第一次驗證成功後，也要馬上預載 ★★★
+                    // 第一次驗證成功後，也要馬上預載
                     preloadMainApp(userId);
                 } else {
                     document.getElementById('spinner').style.display = 'none';
@@ -446,9 +478,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
