@@ -336,7 +336,7 @@
         mainFrame.src = targetUrl;
     }
 
-    // ★★★ 開啟 App 邏輯 (區分主系統和其他系統) ★★★
+   // ★★★ 修正後的 openApp 函式 (包含傳送姓名 + 修正拼字錯誤) ★★★
     function openApp(title, url, mode) {
         var viewer = document.getElementById('web-viewer');
         var mainFrame = document.getElementById('main-frame');
@@ -344,41 +344,38 @@
         var navTitle = document.getElementById('nav-title');
         var floatBtn = document.getElementById('float-close-btn');
         var userId = localStorage.getItem('currentUserId');
+        
+        // 1. 取得儲存的姓名
+        var userName = localStorage.getItem('userName') || '';
 
         navTitle.innerText = title;
 
         // 判斷是否為「智慧平台 (主系統)」
         const isMainApp = url.includes(MAIN_APP_ID_PART);
         
-        // 決定目前要操作的 Frame
         let activeFrame;
 
         if (isMainApp) {
             console.log("⚡ 開啟智慧平台 (使用快取，不重整)");
-            // 顯示 Main，隱藏 Temp
             mainFrame.classList.add('active');
             tempFrame.classList.remove('active');
             activeFrame = mainFrame;
-            // 注意：這裡完全不碰 src，讓它保持背景執行的狀態
         } else {
-            onsole.log("🔄 開啟其他功能 (強制載入新網址)");
-        mainFrame.classList.remove('active');
-        tempFrame.classList.add('active');
-        activeFrame = tempFrame;
+            // ★★★ 這裡原本打錯成 onsole，已修正為 console ★★★
+            console.log("🔄 開啟其他功能 (強制載入新網址)");
+            
+            mainFrame.classList.remove('active');
+            tempFrame.classList.add('active');
+            activeFrame = tempFrame;
 
-        // ★★★ 修改這裡：同時傳送 UID 和 Name ★★★
-        let finalUrl = url;
-        
-        // 取得儲存在本地的名字
-        let userName = localStorage.getItem('userName') || '';
+            // 2. 組裝網址 (加入 uid 和 name)
+            let finalUrl = url;
+            let separator = finalUrl.includes('?') ? '&' : '?';
 
-        // 判斷網址是否已有參數，決定用 ? 或 &
-        let separator = finalUrl.includes('?') ? '&' : '?';
-        
-        // 組裝參數 (記得用 encodeURIComponent 處理中文名字)
-        if (userId && userId !== "null") {
-            finalUrl += separator + "uid=" + userId + "&name=" + encodeURIComponent(userName);
-        }
+            if (userId && userId !== "null") {
+                // 使用 encodeURIComponent 避免中文亂碼
+                finalUrl += separator + "uid=" + userId + "&name=" + encodeURIComponent(userName);
+            }
 
             // 強制載入新頁面
             tempFrame.src = finalUrl;
@@ -398,7 +395,6 @@
         // 顯示視窗
         viewer.style.display = 'flex';
     }
-
     // ★★★ 關閉 App 邏輯 ★★★
     function closeApp() {
         var viewer = document.getElementById('web-viewer');
