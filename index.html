@@ -313,39 +313,45 @@
         }
     };
 
-    // 靜默登入函式 (無動畫，直接進)
+    // 靜默登入函式 (修正版：改用 fetch)
     async function runSilentLogin(userObj, uid) {
         console.log("🚀 啟動靜默登入...");
 
-        // 1. 確保開場動畫顯示 (避免畫面閃爍)
-        // 並馬上開始背景抓資料
-        
-        let userName = "";
-        if (userObj) userName = userObj.name;
-        
-        // 如果只有 UID，先驗證再抓名
-        if (!userObj && uid) {
-             // 這裡可以選擇是否要呼叫後端確認，但為了快，我們可以相信 UID 是對的
-             // 或是為了保險起見，快速呼叫一下 API
-             // 為了極速，我們直接解鎖畫面，背景再去確認權限
-        }
-
+        // 1. 如果後端已經有傳來資料 (極速模式)
         if (userObj) {
-            // 後端已經確認過，直接進入
             finishLogin(userObj.name, uid);
         } else {
-            // 只有 UID，前端呼叫後端確認 (這會稍微慢一點點)
-            google.script.run
-              .withSuccessHandler(res => {
-                  if(res.success) {
-                      finishLogin(res.user.name, uid);
-                  } else {
-                      // 驗證失敗
-                      alert("驗證失敗，請重試");
-                      forceReset();
-                  }
-              })
-              .loginByLineUid(uid);
+            // 2. 如果只有 UID，必須透過 API 網址去查，不能用 google.script.run
+            console.log("呼叫 API 驗證身分...");
+            
+            fetch(CHECK_API_URL + "?userId=" + uid)
+            .then(response => response.json())
+            .then(data => {
+                if (data.allowed) {
+                    // 驗證成功
+                    finishLogin(data.name, uid);
+                } else {
+                    // 驗證失敗 (可能是名單被移除)
+                    alert("驗證失敗，您的 ID 不} else {
+            // 只有 UID，前端呼叫後端 API 確認 (使用 fetch 代替 google.script.run)
+            // CHECK_API_URL 已經在上面定義好了，直接用
+            fetch(CHECK_API_URL + "?userId=" + uid)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.allowed) {
+                        // 驗證成功，進入系統
+                        finishLogin(data.name, uid);
+                    } else {
+                        // 驗證失敗
+                        alert("驗證失敗或無權限，請重試");
+                        forceReset();
+                    }
+                })
+                .catch(err => {
+                    console.error("連線錯誤:", err);
+                    document.getElementById('status-text').innerText = "連線錯誤，請檢查網路";
+                    document.getElementById('reset-btn').style.display = 'block';
+                });
         }
     }
 
