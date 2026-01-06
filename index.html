@@ -270,109 +270,114 @@
     </div>
 
     <script>
-        // ★★★ 請替換成你的設定 ★★★
-        const MY_LIFF_ID = "2008830494-0OA0heXb";
-        const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
+   <script>
+    const MY_LIFF_ID = "2008830494-0OA0heXb";
+    const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
 
-        // 初始化檢查
-        window.onload = function() {
-            if (localStorage.getItem('isAuthorized') === 'true') {
-                const savedName = localStorage.getItem('userName') || '';
-                // 顯示大標題歡迎詞
-                if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
-                unlockScreen();
-            } else {
-                initializeLiff();
-            }
-        };
-
-        function initializeLiff() {
-            liff.init({ liffId: MY_LIFF_ID })
-                .then(() => {
-                    if (liff.isLoggedIn()) {
-                        checkPermission();
-                    } else {
-                        liff.login();
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    document.getElementById('status-text').innerHTML = "系統初始化失敗<br>請重新整理";
-                });
+    window.onload = function() {
+        if (localStorage.getItem('isAuthorized') === 'true') {
+            const savedName = localStorage.getItem('userName') || '';
+            if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
+            unlockScreen();
+        } else {
+            initializeLiff();
         }
+    };
 
-        function checkPermission() {
-            document.getElementById('status-text').innerText = "正在確認權限...";
-            
-            liff.getProfile().then(profile => {
-                const userId = profile.userId;
-                
-                fetch(CHECK_API_URL + "?userId=" + userId)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.allowed) {
-                        localStorage.setItem('isAuthorized', 'true');
-                        localStorage.setItem('userName', data.name);
-                        document.getElementById('user-display').innerText = "Hi, " + data.name;
-                        unlockScreen();
-                    } else {
-                        document.getElementById('spinner').style.display = 'none';
-                        document.getElementById('status-text').innerHTML = 
-                            "⚠️ 存取被拒絕<br>您的 ID 未在白名單中<br>" + 
-                            "<div class='error-id'>" + userId + "</div>" +
-                            "<br>請截圖並聯絡管理員新增";
-                    }
-                })
-                .catch(err => {
-                    document.getElementById('status-text').innerHTML = "伺服器連線錯誤<br>請稍後再試";
-                });
+    function initializeLiff() {
+        liff.init({ liffId: MY_LIFF_ID })
+            .then(() => {
+                if (liff.isLoggedIn()) {
+                    checkPermission();
+                } else {
+                    liff.login();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('status-text').innerHTML = "系統初始化失敗";
             });
-        }
+    }
 
-        function unlockScreen() {
-            const lockScreen = document.getElementById('lock-screen');
-            const mainContent = document.getElementById('main-content');
-            lockScreen.style.opacity = '0';
-            mainContent.style.display = 'block';
-            setTimeout(() => {
-                lockScreen.style.display = 'none';
-                mainContent.style.opacity = '1';
-            }, 500);
-        }
-
-        function openApp(title, url, mode) {
-            var viewer = document.getElementById('web-viewer');
-            var frame = document.getElementById('content-frame');
-            var navTitle = document.getElementById('nav-title');
-            var floatBtn = document.getElementById('float-close-btn');
-
-            navTitle.innerText = title;
-
-            if (mode === 'light') {
-                viewer.classList.remove('fullscreen-mode');
-                floatBtn.style.display = 'none';
-                frame.style.backgroundColor = '#ffffff'; 
-            } else {
-                viewer.classList.add('fullscreen-mode');
-                floatBtn.style.display = 'flex';
-                frame.style.backgroundColor = '#0b1121'; 
-            }
+    function checkPermission() {
+        document.getElementById('status-text').innerText = "正在確認權限...";
+        
+        liff.getProfile().then(profile => {
+            const userId = profile.userId;
             
-            viewer.style.display = 'flex';
-            frame.src = url; 
+            fetch(CHECK_API_URL + "?userId=" + userId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.allowed) {
+                    // ★★★ 關鍵修改 1：把 UserID 存到本地 ★★★
+                    localStorage.setItem('isAuthorized', 'true');
+                    localStorage.setItem('userName', data.name);
+                    localStorage.setItem('currentUserId', userId); // 存下 ID
+                    
+                    document.getElementById('user-display').innerText = "Hi, " + data.name;
+                    unlockScreen();
+                } else {
+                    document.getElementById('spinner').style.display = 'none';
+                    document.getElementById('status-text').innerHTML = 
+                        "⚠️ 無權限<br>ID: <div class='error-id'>" + userId + "</div>";
+                }
+            });
+        });
+    }
+
+    function unlockScreen() {
+        const lockScreen = document.getElementById('lock-screen');
+        const mainContent = document.getElementById('main-content');
+        lockScreen.style.opacity = '0';
+        mainContent.style.display = 'block';
+        setTimeout(() => {
+            lockScreen.style.display = 'none';
+            mainContent.style.opacity = '1';
+        }, 500);
+    }
+
+    function openApp(title, url, mode) {
+        var viewer = document.getElementById('web-viewer');
+        var frame = document.getElementById('content-frame');
+        var navTitle = document.getElementById('nav-title');
+        var floatBtn = document.getElementById('float-close-btn');
+
+        // ★★★ 關鍵修改 2：把 UserID 附加到網址後面傳給子系統 ★★★
+        var userId = localStorage.getItem('currentUserId');
+        var finalUrl = url;
+        
+        // 判斷網址原本有沒有參數，決定要用 ? 還是 &
+        if (url.includes('?')) {
+            finalUrl += "&uid=" + userId;
+        } else {
+            finalUrl += "?uid=" + userId;
         }
 
-        function closeApp() {
-            var viewer = document.getElementById('web-viewer');
-            var frame = document.getElementById('content-frame');
-            
-            viewer.style.display = 'none'; 
-            
-            setTimeout(function() {
-                frame.src = ''; 
-            }, 300);
+        console.log("開啟網址:", finalUrl); // 測試用，你會看到網址後面多了 uid=...
+
+        navTitle.innerText = title;
+
+        if (mode === 'light') {
+            viewer.classList.remove('fullscreen-mode');
+            floatBtn.style.display = 'none';
+            frame.style.backgroundColor = '#ffffff'; 
+        } else {
+            viewer.classList.add('fullscreen-mode');
+            floatBtn.style.display = 'flex';
+            frame.style.backgroundColor = '#0b1121'; 
         }
-    </script>
+        
+        viewer.style.display = 'flex';
+        frame.src = finalUrl; 
+    }
+
+    function closeApp() {
+        var viewer = document.getElementById('web-viewer');
+        var frame = document.getElementById('content-frame');
+        viewer.style.display = 'none'; 
+        setTimeout(() => { frame.src = ''; }, 300);
+    }
+</script>
 
 </body>
 </html>
