@@ -361,18 +361,24 @@
             activeFrame = mainFrame;
             // 注意：這裡完全不碰 src，讓它保持背景執行的狀態
         } else {
-            console.log("🔄 開啟其他功能 (強制載入新網址)");
-            // 隱藏 Main，顯示 Temp
-            mainFrame.classList.remove('active');
-            tempFrame.classList.add('active');
-            activeFrame = tempFrame;
+            onsole.log("🔄 開啟其他功能 (強制載入新網址)");
+        mainFrame.classList.remove('active');
+        tempFrame.classList.add('active');
+        activeFrame = tempFrame;
 
-            // 組裝網址
-            let finalUrl = url;
-            if (userId && userId !== "null") {
-                if (url.includes('?')) finalUrl += "&uid=" + userId;
-                else finalUrl += "?uid=" + userId;
-            }
+        // ★★★ 修改這裡：同時傳送 UID 和 Name ★★★
+        let finalUrl = url;
+        
+        // 取得儲存在本地的名字
+        let userName = localStorage.getItem('userName') || '';
+
+        // 判斷網址是否已有參數，決定用 ? 或 &
+        let separator = finalUrl.includes('?') ? '&' : '?';
+        
+        // 組裝參數 (記得用 encodeURIComponent 處理中文名字)
+        if (userId && userId !== "null") {
+            finalUrl += separator + "uid=" + userId + "&name=" + encodeURIComponent(userName);
+        }
 
             // 強制載入新頁面
             tempFrame.src = finalUrl;
