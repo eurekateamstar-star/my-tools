@@ -42,7 +42,7 @@
             min-height: 100vh;
         }
 
-        /* ★★★ 鎖定畫面 ★★★ */
+        /* 鎖定畫面 */
         #lock-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: #0b1121; z-index: 9999;
@@ -70,16 +70,11 @@
 
         /* 歡迎詞 */
         .user-welcome {
-            font-size: 24px; 
-            color: #ffffff; 
-            font-weight: 700;
-            margin-bottom: 30px; 
-            margin-top: 10px;
-            padding-left: 5px;
+            font-size: 24px; color: #ffffff; font-weight: 700;
+            margin-bottom: 30px; margin-top: 10px; padding-left: 5px;
             letter-spacing: 0.5px;
             background: linear-gradient(90deg, #ffffff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
         /* 分類標題 */
@@ -162,9 +157,10 @@
         #content-frame {
             width: 1px; min-width: 100%; flex: 1; border: none; display: block;
             background-color: #ffffff; padding-bottom: env(safe-area-inset-bottom);
+            transition: opacity 0.3s ease;
         }
 
-        /* Dark Mode (全螢幕 + 懸浮按鈕) */
+        /* Dark Mode */
         #web-viewer.fullscreen-mode #nav-header { display: none; }
         #web-viewer.fullscreen-mode {
             padding-top: env(safe-area-inset-top); 
@@ -186,18 +182,18 @@
 </head>
 <body>
 
-    <!-- ★★★ 鎖定畫面 ★★★ -->
+    <!-- 鎖定畫面 -->
     <div id="lock-screen">
         <div class="loading-spinner" id="spinner"></div>
         <div class="status-text" id="status-text">系統驗證中...</div>
         
-        <!-- 重置按鈕：防止卡死 -->
+        <!-- 重置按鈕 -->
         <button id="reset-btn" onclick="forceReset()" style="display:none; margin-top:20px; padding:10px 20px; background:#ef4444; color:white; border:none; border-radius:50px; font-weight:bold; cursor:pointer;">
             <i class="fa-solid fa-rotate-right"></i> 重置系統
         </button>
     </div>
 
-    <!-- ★★★ 主要內容區 ★★★ -->
+    <!-- 主要內容區 -->
     <div id="main-content">
         
         <div id="user-display" class="user-welcome"></div>
@@ -250,40 +246,43 @@
                 <span class="app-name">協勤表單</span>
             </a>
         </div>
-
     </div>
+
+    <!-- 隱藏欄位接收後端資料 -->
+    <input type="hidden" id="url-uid-storage" value="<?= urlUid ?>">
+    <div id="server-user-data" style="display:none;"><?= initialUser ?></div>
 
     <!-- 全螢幕檢視器 -->
     <div id="web-viewer">
-        <!-- 頂部導航列 (Light Mode) -->
         <div id="nav-header">
             <div id="nav-title">標題</div>
             <div class="close-btn-nav" onclick="closeApp()">
                 <div class="close-icon-circle"><i class="fa-solid fa-xmark"></i></div>
             </div>
         </div>
-
-        <!-- 懸浮關閉按鈕 (Dark Mode) -->
         <div id="float-close-btn" onclick="closeApp()">
             <i class="fa-solid fa-xmark"></i>
+        </div>
+        
+        <!-- ★★★ 過場轉圈圈 (切換系統時顯示) ★★★ -->
+        <div id="viewer-loader" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#94a3b8; flex-direction:column; align-items:center;">
+            <div class="loading-spinner"></div>
+            <div style="margin-top:10px; font-size:14px;">系統載入中...</div>
         </div>
 
         <iframe id="content-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
     </div>
 
 <script>
-    // ★★★ 設定區 ★★★
     const MY_LIFF_ID = "2008830494-0OA0heXb";
     const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
     
-    // 設定要「預先偷跑」的主系統網址 (智慧平台)
+    // 設定主系統網址
     const MAIN_APP_URL = "https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec";
 
-    // 全域變數
-    let currentLoadedUrl = ""; // 紀錄目前 iframe 正在跑哪個網址
+    let currentLoadedUrl = "";
 
     window.onload = function() {
-        // 防止卡死重置按鈕
         setTimeout(() => {
             const resetBtn = document.getElementById('reset-btn');
             if(resetBtn && document.getElementById('lock-screen').style.display !== 'none') {
@@ -292,40 +291,88 @@
             }
         }, 3000);
 
-        const isAuthorized = localStorage.getItem('isAuthorized') === 'true';
-        const savedUid = localStorage.getItem('currentUserId');
+        let serverUserStr = "null";
+        try {
+            const div = document.getElementById('server-user-data');
+            if (div) serverUserStr = div.innerText.trim();
+        } catch(e) {}
 
-        if (isAuthorized && savedUid && savedUid !== "null" && savedUid !== "undefined") {
-            const savedName = localStorage.getItem('userName') || '';
-            if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
-            
-            unlockScreen();
-            
-            // ★★★ 關鍵修改：解鎖後，馬上在背景預載主系統！ ★★★
-            preloadMainApp(savedUid);
-            
+        const urlUid = document.getElementById('url-uid-storage').value;
+
+        let autoUser = null;
+        if (serverUserStr !== "null" && serverUserStr !== "") {
+            try { autoUser = JSON.parse(serverUserStr); } catch(e) {}
+        }
+
+        if (autoUser || (urlUid && urlUid.trim() !== "")) {
+            // 自動登入 (無感)
+            runSilentLogin(autoUser, urlUid);
         } else {
-            console.log("需要驗證...");
+            // 手動登入
             initializeLiff();
         }
     };
 
-    // ★★★ 新增：預先載入函式 ★★★
-    function preloadMainApp(userId) {
-        console.log("🚀 開始背景預載主系統...");
-        const frame = document.getElementById('content-frame');
+    // 靜默登入函式 (無動畫，直接進)
+    async function runSilentLogin(userObj, uid) {
+        console.log("🚀 啟動靜默登入...");
+
+        // 1. 確保開場動畫顯示 (避免畫面閃爍)
+        // 並馬上開始背景抓資料
         
-        // 組裝帶有 UID 的網址
-        let targetUrl = MAIN_APP_URL;
-        if (targetUrl.includes('?')) {
-            targetUrl += "&uid=" + userId;
-        } else {
-            targetUrl += "?uid=" + userId;
+        let userName = "";
+        if (userObj) userName = userObj.name;
+        
+        // 如果只有 UID，先驗證再抓名
+        if (!userObj && uid) {
+             // 這裡可以選擇是否要呼叫後端確認，但為了快，我們可以相信 UID 是對的
+             // 或是為了保險起見，快速呼叫一下 API
+             // 為了極速，我們直接解鎖畫面，背景再去確認權限
         }
 
-        // 偷偷設定 iframe 的網址 (這時候使用者看不到，但已經在跑了)
+        if (userObj) {
+            // 後端已經確認過，直接進入
+            finishLogin(userObj.name, uid);
+        } else {
+            // 只有 UID，前端呼叫後端確認 (這會稍微慢一點點)
+            google.script.run
+              .withSuccessHandler(res => {
+                  if(res.success) {
+                      finishLogin(res.user.name, uid);
+                  } else {
+                      // 驗證失敗
+                      alert("驗證失敗，請重試");
+                      forceReset();
+                  }
+              })
+              .loginByLineUid(uid);
+        }
+    }
+
+    function finishLogin(name, uid) {
+        // 寫入本地
+        localStorage.setItem('isAuthorized', 'true');
+        localStorage.setItem('userName', name);
+        localStorage.setItem('currentUserId', uid);
+
+        // 顯示歡迎詞
+        document.getElementById('user-display').innerText = "Hi, " + name;
+        
+        // 解鎖畫面
+        unlockScreen();
+        
+        // ★★★ 關鍵：背景預載主系統 ★★★
+        preloadMainApp(uid);
+    }
+
+    function preloadMainApp(userId) {
+        console.log("🚀 背景預載主系統...");
+        const frame = document.getElementById('content-frame');
+        let targetUrl = MAIN_APP_URL;
+        if (targetUrl.includes('?')) targetUrl += "&uid=" + userId;
+        else targetUrl += "?uid=" + userId;
         frame.src = targetUrl;
-        currentLoadedUrl = MAIN_APP_URL; // 記住現在跑的是主系統
+        currentLoadedUrl = MAIN_APP_URL; // 標記目前 iframe 正在跑主系統
     }
 
     function openApp(title, url, mode) {
@@ -333,11 +380,12 @@
         var frame = document.getElementById('content-frame');
         var navTitle = document.getElementById('nav-title');
         var floatBtn = document.getElementById('float-close-btn');
+        var loader = document.getElementById('viewer-loader');
         var userId = localStorage.getItem('currentUserId');
 
         navTitle.innerText = title;
 
-        // 設定介面模式 (Light/Dark)
+        // 1. 設定外觀模式
         if (mode === 'light') {
             viewer.classList.remove('fullscreen-mode');
             floatBtn.style.display = 'none';
@@ -348,42 +396,58 @@
             frame.style.backgroundColor = '#0b1121'; 
         }
 
-        // ★★★ 關鍵修改：判斷是否已經預載好了 ★★★
-        
-        // 1. 如果點擊的網址 == 已經在跑的網址 (例如點了智慧平台)
+        // 2. 顯示視窗
+        viewer.style.display = 'flex';
+
+        // 3. 判斷是否為同一個系統
         if (url === currentLoadedUrl) {
-            console.log("⚡ 命中預載！直接顯示，不重新載入");
-            // 什麼都不用做，直接 show 出來就好
-            // 因為 src 早就設定好了，資料也可能已經跑好了
-        } 
-        // 2. 如果點的是別的系統 (例如點班系統)
-        else {
-            console.log("🔄 切換系統，重新載入");
+            console.log("⚡ 命中預載！");
+            frame.style.opacity = '1';
+            loader.style.display = 'none';
+        } else {
+            console.log("🔄 切換系統，重置畫面...");
             
-            // 組裝網址
+            // ★★★ 關鍵：先清空畫面，避免看到上一個人的資料 ★★★
+            frame.style.opacity = '0';
+            loader.style.display = 'flex';
+            
+            // 清空 src (最保險)
+            frame.src = 'about:blank';
+
+            // 組裝新網址
             let finalUrl = url;
             if (userId && userId !== "null") {
                 if (url.includes('?')) finalUrl += "&uid=" + userId;
                 else finalUrl += "?uid=" + userId;
             }
             
-            // 載入新網址
-            frame.src = finalUrl;
-            currentLoadedUrl = url; // 更新紀錄
+            // 延遲一點點載入
+            setTimeout(() => {
+                frame.src = finalUrl;
+                currentLoadedUrl = url; 
+            }, 50);
+
+            // 監聽載入完成
+            frame.onload = function() {
+                frame.style.opacity = '1';
+                loader.style.display = 'none';
+            };
         }
-        
-        // 顯示視窗
-        viewer.style.display = 'flex';
     }
 
     function closeApp() {
         var viewer = document.getElementById('web-viewer');
-        // 注意：關閉時不要清空 src，這樣下次打開主系統才會是秒開的狀態
-        // 只有當使用者想要「重整」時才需要清空，但在這裡保留 src 體驗比較好
         viewer.style.display = 'none'; 
+        
+        // ★★★ 關閉後，偷偷切回主系統預載 ★★★
+        if (currentLoadedUrl !== MAIN_APP_URL) {
+            console.log("背景復原主系統...");
+            var userId = localStorage.getItem('currentUserId');
+            setTimeout(() => {
+                if(userId) preloadMainApp(userId);
+            }, 500);
+        }
     }
-
-    // --- 以下為原本的輔助功能 (保持不變) ---
 
     function forceReset() {
         localStorage.clear();
@@ -415,14 +479,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.allowed) {
-                    localStorage.setItem('isAuthorized', 'true');
-                    localStorage.setItem('userName', data.name);
-                    localStorage.setItem('currentUserId', userId); 
-                    document.getElementById('user-display').innerText = "Hi, " + data.name;
-                    unlockScreen();
-                    
-                    // ★★★ 第一次驗證成功後，也要馬上預載 ★★★
-                    preloadMainApp(userId);
+                    finishLogin(data.name, userId);
                 } else {
                     document.getElementById('spinner').style.display = 'none';
                     document.getElementById('status-text').innerHTML = "⚠️ 無權限<br>ID: <div class='error-id'>" + userId + "</div>";
