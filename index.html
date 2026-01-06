@@ -272,36 +272,6 @@
     </div>
 
 <script>
-    const MY_LIFF_ID = "2008830494-0OA0heXb";
-    const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
-
-    window.onload = function() {
-        // 設定超時顯示重置按鈕
-        setTimeout(() => {
-            const resetBtn = document.getElementById('reset-btn');
-            if(resetBtn && document.getElementById('lock-screen').style.display !== 'none') {
-                resetBtn.style.display = 'block';
-                document.getElementById('status-text').innerText = "連線似乎有問題...";
-            }
-        }, 3000);
-
-        const isAuthorized = localStorage.getItem('isAuthorized') === 'true';
-        const savedUid = localStorage.getItem('currentUserId');
-
-        // ★★★ 強力檢查：防止 null ID 混入 ★★★
-        if (isAuthorized && savedUid && savedUid !== "null" && savedUid !== "undefined") {
-            const savedName = localStorage.getItem('userName') || '';
-            if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
-            unlockScreen();
-        } else {
-            console.log("需要驗證...");
-            initializeLiff();
-        }
-    };
-
-    // 強制重置 (清除快取)
-    function forceReset() {
-        localSto<script>
     // ★★★ 設定區 ★★★
     const MY_LIFF_ID = "2008830494-0OA0heXb";
     const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
