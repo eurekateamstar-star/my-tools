@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
+    <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="海山救護">
@@ -13,7 +14,11 @@
     <link rel="apple-touch-icon" href="icon1.jpg"> 
     <link rel="icon" type="image/jpeg" href="icon1.jpg">
 
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- ★★★ 引入 LINE LIFF SDK ★★★ -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <title>海山救護義消智慧平台入口</title>
     
@@ -21,7 +26,7 @@
         :root {
             --bg-color: #0b1121; 
             --text-color: #ffffff;
-            --header-height: 50px; /* 導航列高度 */
+            --header-height: 50px;
         }
 
         body {
@@ -36,65 +41,74 @@
             min-height: 100vh;
         }
 
+        /* ★★★ 鎖定畫面樣式 ★★★ */
+        #lock-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #0b1121; z-index: 9999;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            transition: opacity 0.5s ease; padding: 20px; text-align: center;
+        }
+        
+        /* 主要內容預設隱藏 */
+        #main-content { display: none; opacity: 0; transition: opacity 0.5s ease; }
+
+        .loading-spinner {
+            width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #3b82f6; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        
+        .status-text { font-size: 16px; color: #94a3b8; font-weight: 500; line-height: 1.6; }
+        .error-id { 
+            margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); 
+            border-radius: 8px; font-family: monospace; user-select: text; 
+            color: #f87171; border: 1px dashed #f87171;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 使用者歡迎詞 */
+        .user-welcome {
+            position: absolute; top: calc(15px + env(safe-area-inset-top)); left: 20px;
+            font-size: 13px; color: #94a3b8; font-weight: 500;
+        }
+
         /* 搜尋框 */
         .search-container { padding: 0 0 24px 0; }
         .search-bar {
-            background-color: rgba(255,255,255,0.06);
-            padding: 14px;
-            border-radius: 16px;
-            color: #94a3b8;
-            text-align: center;
-            font-size: 14px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            font-weight: 500;
+            background-color: rgba(255,255,255,0.06); padding: 14px; border-radius: 16px;
+            color: #94a3b8; text-align: center; font-size: 14px;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-weight: 500;
         }
 
         /* 分類標題 */
         .category-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 20px;
-            margin-top: 5px;
-            padding-left: 8px;
-            border-left: 3px solid #3b82f6;
-            line-height: 1;
+            font-size: 18px; font-weight: 600; color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px; margin-top: 5px; padding-left: 8px;
+            border-left: 3px solid #3b82f6; line-height: 1;
         }
 
         /* 網格排列 */
         .app-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            row-gap: 32px;
-            column-gap: 12px;
-            margin-bottom: 45px;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            row-gap: 32px; column-gap: 12px; margin-bottom: 45px;
         }
 
         .app-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            position: relative;
-            cursor: pointer;
+            display: flex; flex-direction: column; align-items: center;
+            text-decoration: none; position: relative; cursor: pointer;
         }
 
         /* App 圖示 */
         .app-icon {
-            width: 68px;
-            height: 68px;
-            border-radius: 18px;
+            width: 68px; height: 68px; border-radius: 18px;
             display: flex; justify-content: center; align-items: center;
             color: white; font-size: 28px;
             position: relative; margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-top: 1px solid rgba(255,255,255,0.25);
+            border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.25);
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .app-icon::before {
@@ -129,149 +143,121 @@
             transition: background-color 0.3s ease;
         }
 
-        /* --- 仿原生 App 導航列 --- */
+        /* --- 頂部導航列 (Light Mode) --- */
         #nav-header {
-            width: 100%;
-            height: var(--header-height);
-            /* 加上頂部安全區域高度 */
-            padding-top: env(safe-area-inset-top); 
-            background-color: #0b1121; /* 固定深色背景 */
-            display: flex;
-            align-items: center;
-            justify-content: center; /* 標題置中 */
-            position: relative;
-            box-shadow: 0 1px 0 rgba(255,255,255,0.1); /* 底部細線 */
-            flex-shrink: 0; /* 防止被擠壓 */
-            z-index: 2000;
+            width: 100%; height: var(--header-height); padding-top: env(safe-area-inset-top); 
+            background-color: #0b1121; display: flex; align-items: center; justify-content: center;
+            position: relative; box-shadow: 0 1px 0 rgba(255,255,255,0.1); flex-shrink: 0; z-index: 2000;
         }
-
-        /* 導航列標題 */
-        #nav-title {
-            font-size: 17px;
-            font-weight: 600;
-            color: #ffffff;
-            letter-spacing: 0.5px;
-        }
-
-        /* 關閉按鈕 - 改為文字按鈕或圖示，放在導航列右側 */
-        .close-btn-nav {
-            position: absolute;
-            right: 15px;
-            top: env(safe-area-inset-top); /* 對齊標題 */
-            height: var(--header-height);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3b82f6; /* iOS 藍色風格 */
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 0 5px;
-        }
-        .close-btn-nav:active { opacity: 0.6; }
+        #nav-title { font-size: 17px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px; }
         
-        /* 讓關閉按鈕看起來像圖示 */
+        .close-btn-nav {
+            position: absolute; right: 15px; top: env(safe-area-inset-top); height: var(--header-height);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 5px;
+        }
         .close-icon-circle {
-            width: 30px; height: 30px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            color: white;
+            width: 30px; height: 30px; background: rgba(255,255,255,0.15); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; color: white;
         }
 
-        /* 內容 iframe 區域 */
+        /* --- 內容 iframe --- */
         #content-frame {
-            width: 100%; 
-            flex: 1; /* 佔滿剩餘空間 */
-            border: none; 
-            display: block;
-            background-color: #ffffff; /* 預設白色 */
-            /* 解決 iPhone 底部圓角或安全區問題 */
-            padding-bottom: env(safe-area-inset-bottom);
+            width: 1px; min-width: 100%; flex: 1; border: none; display: block;
+            background-color: #ffffff; padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* 當在深色 App (如智慧平台) 時，隱藏導航列，讓全螢幕更沉浸 */
-        #web-viewer.fullscreen-mode #nav-header {
-            display: none;
-        }
+        /* --- Dark Mode (全螢幕 + 懸浮按鈕) --- */
+        #web-viewer.fullscreen-mode #nav-header { display: none; }
         #web-viewer.fullscreen-mode {
-            padding-top: env(safe-area-inset-top); /* 補回安全區 */
+            padding-top: env(safe-area-inset-top); 
             background-color: #0b1121;
         }
-        /* 全螢幕模式下的懸浮關閉按鈕 */
+        
         #float-close-btn {
-            display: none; /* 預設隱藏 */
-            position: absolute;
-            top: calc(15px + env(safe-area-inset-top));
-            right: 20px;
-            width: 36px; height: 36px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 50%;
-            color: white;
+            display: none; position: absolute;
+            top: calc(15px + env(safe-area-inset-top)); right: 20px;
+            width: 36px; height: 36px; background: rgba(0,0,0,0.5);
+            border-radius: 50%; color: white;
             justify-content: center; align-items: center;
-            backdrop-filter: blur(4px);
-            z-index: 3000;
+            backdrop-filter: blur(4px); z-index: 3000;
             border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
         }
 
     </style>
 </head>
 <body>
 
-    <div class="search-container">
-        <div class="search-bar">
-            <i class="fa-solid fa-magnifying-glass"></i> 搜尋應用系統...
-        </div>
+    <!-- ★★★ 鎖定畫面 ★★★ -->
+    <div id="lock-screen">
+        <div class="loading-spinner" id="spinner"></div>
+        <div class="status-text" id="status-text">系統驗證中...</div>
     </div>
 
-    <div class="category-title">EMS 核心系統</div>
+    <!-- ★★★ 主要內容區 ★★★ -->
+    <div id="main-content">
+        
+        <!-- 顯示使用者名稱 -->
+        <div id="user-display" class="user-welcome"></div>
 
-    <div class="app-grid">
-        <!-- 1. 智慧平台 (全深色模式) -->
-        <div class="app-item" onclick="openApp('智慧平台', 'https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', 'dark')">
-            <div class="app-icon bg-medical"><i class="fa-solid fa-truck-medical"></i></div>
-            <span class="app-name">智慧平台</span>
+        <div class="search-container">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i> 搜尋應用系統...
+            </div>
         </div>
 
-        <!-- 2. 協勤記錄 (白底 + 頂部導航列) -->
-        <div class="app-item" onclick="openApp('協勤記錄', 'https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', 'light')">
-            <div class="app-icon bg-record"><i class="fa-solid fa-file-signature"></i></div>
-            <span class="app-name">協勤記錄</span>
+        <div class="category-title">EMS 核心系統</div>
+
+        <div class="app-grid">
+            <!-- 1. 智慧平台 (Dark Mode, 懸浮按鈕) -->
+            <div class="app-item" onclick="openApp('智慧平台', 'https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', 'dark')">
+                <div class="app-icon bg-medical"><i class="fa-solid fa-truck-medical"></i></div>
+                <span class="app-name">智慧平台</span>
+            </div>
+
+            <!-- 2. 協勤記錄 (Light Mode, 頂部導航) -->
+            <!-- 已更新為指定連結 -->
+            <div class="app-item" onclick="openApp('協勤記錄', 'https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', 'light')">
+                <div class="app-icon bg-record"><i class="fa-solid fa-file-signature"></i></div>
+                <span class="app-name">協勤記錄</span>
+            </div>
+
+            <!-- 3. 點班系統 (Dark Mode, 懸浮按鈕) -->
+            <div class="app-item" onclick="openApp('點班系統', 'https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', 'dark')">
+                <div class="app-icon bg-check"><i class="fa-solid fa-clipboard-check"></i></div>
+                <span class="app-name">點班系統</span>
+            </div>
+
+            <!-- 4. 新人考核 (Light Mode, 頂部導航) -->
+            <div class="app-item" onclick="openApp('新人考核', 'https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', 'light')">
+                <div class="app-icon bg-exam"><i class="fa-solid fa-user-graduate"></i></div>
+                <span class="app-name">新人考核</span>
+            </div>
         </div>
 
-        <!-- 3. 點班系統 (全深色模式) -->
-        <div class="app-item" onclick="openApp('點班系統', 'https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', 'dark')">
-            <div class="app-icon bg-check"><i class="fa-solid fa-clipboard-check"></i></div>
-            <span class="app-name">點班系統</span>
+        <div class="category-title">常用工具</div>
+
+        <div class="app-grid">
+            <a href="https://www.google.com" class="app-item" target="_blank">
+                <div class="app-icon bg-google"><i class="fa-brands fa-google"></i></div>
+                <span class="app-name">Google</span>
+            </a>
+            <a href="https://chatgpt.com" class="app-item" target="_blank">
+                <div class="app-icon bg-ai"><i class="fa-solid fa-robot"></i></div>
+                <span class="app-name">ChatGPT</span>
+            </a>
+            <a href="https://www.google.com/maps" class="app-item" target="_blank">
+                <div class="app-icon bg-map"><i class="fa-solid fa-map-location-dot"></i></div>
+                <span class="app-name">地圖</span>
+            </a>
+            <!-- 協勤表單 (Google Sheets 連結，跳出開啟) -->
+            <a href="https://docs.google.com/spreadsheets/d/1u-iyANnz3c8Vu_OathXEX8uqSPvbgWIQqghkbpPB-wU/edit?gid=157452443#gid=157452443" class="app-item" target="_blank">
+                <div class="app-icon bg-schedule"><i class="fa-solid fa-table-list"></i></div>
+                <span class="app-name">協勤表單</span>
+            </a>
         </div>
 
-        <!-- 4. 新人考核 (白底 + 頂部導航列) -->
-        <div class="app-item" onclick="openApp('新人考核', 'https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', 'light')">
-            <div class="app-icon bg-exam"><i class="fa-solid fa-user-graduate"></i></div>
-            <span class="app-name">新人考核</span>
-        </div>
-    </div>
-
-    <div class="category-title">常用工具</div>
-
-    <div class="app-grid">
-        <a href="https://www.google.com" class="app-item" target="_blank">
-            <div class="app-icon bg-google"><i class="fa-brands fa-google"></i></div>
-            <span class="app-name">Google</span>
-        </a>
-        <a href="https://chatgpt.com" class="app-item" target="_blank">
-            <div class="app-icon bg-ai"><i class="fa-solid fa-robot"></i></div>
-            <span class="app-name">ChatGPT</span>
-        </a>
-        <a href="https://www.google.com/maps" class="app-item" target="_blank">
-            <div class="app-icon bg-map"><i class="fa-solid fa-map-location-dot"></i></div>
-            <span class="app-name">地圖</span>
-        </a>
-        <a href="https://docs.google.com/spreadsheets/d/1u-iyANnz3c8Vu_OathXEX8uqSPvbgWIQqghkbpPB-wU/edit?gid=157452443#gid=157452443" class="app-item" target="_blank">
-            <div class="app-icon bg-schedule"><i class="fa-solid fa-calendar-days"></i></div>
-            <span class="app-name">協勤表單</span>
-        </a>
-    </div>
+    </div> <!-- End Main Content -->
 
     <!-- 全螢幕檢視器結構 -->
     <div id="web-viewer">
@@ -289,33 +275,105 @@
             <i class="fa-solid fa-xmark"></i>
         </div>
 
+        <!-- 記得加上 allow 權限，不然相機不能用 -->
         <iframe id="content-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
     </div>
 
     <script>
+        // ★★★ 請替換成你的設定 ★★★
+        const MY_LIFF_ID = "2008830319-XLoO9k5b";
+        const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
+
+        // 初始化檢查
+        window.onload = function() {
+            // 先檢查是否已經驗證過
+            if (localStorage.getItem('isAuthorized') === 'true') {
+                const savedName = localStorage.getItem('userName') || '';
+                if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
+                unlockScreen();
+            } else {
+                initializeLiff();
+            }
+        };
+
+        function initializeLiff() {
+            liff.init({ liffId: MY_LIFF_ID })
+                .then(() => {
+                    if (liff.isLoggedIn()) {
+                        checkPermission();
+                    } else {
+                        liff.login();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('status-text').innerHTML = "系統初始化失敗<br>請重新整理";
+                });
+        }
+
+        function checkPermission() {
+            document.getElementById('status-text').innerText = "正在確認權限...";
+            
+            liff.getProfile().then(profile => {
+                const userId = profile.userId;
+                
+                // 呼叫你的 Google Script API 檢查 ID
+                fetch(CHECK_API_URL + "?userId=" + userId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.allowed) {
+                        // 驗證通過
+                        localStorage.setItem('isAuthorized', 'true');
+                        localStorage.setItem('userName', data.name);
+                        document.getElementById('user-display').innerText = "Hi, " + data.name;
+                        unlockScreen();
+                    } else {
+                        // 驗證失敗
+                        document.getElementById('spinner').style.display = 'none';
+                        document.getElementById('status-text').innerHTML = 
+                            "⚠️ 存取被拒絕<br>您的 ID 未在白名單中<br>" + 
+                            "<div class='error-id'>" + userId + "</div>" +
+                            "<br>請截圖並聯絡管理員新增";
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('status-text').innerHTML = "伺服器連線錯誤<br>請稍後再試";
+                });
+            });
+        }
+
+        function unlockScreen() {
+            const lockScreen = document.getElementById('lock-screen');
+            const mainContent = document.getElementById('main-content');
+            lockScreen.style.opacity = '0';
+            mainContent.style.display = 'block';
+            setTimeout(() => {
+                lockScreen.style.display = 'none';
+                mainContent.style.opacity = '1';
+            }, 500);
+        }
+
+        // --- App 開啟邏輯 ---
         function openApp(title, url, mode) {
             var viewer = document.getElementById('web-viewer');
             var frame = document.getElementById('content-frame');
             var navTitle = document.getElementById('nav-title');
             var floatBtn = document.getElementById('float-close-btn');
 
-            // 1. 設定標題
             navTitle.innerText = title;
 
-            // 2. 判斷模式
             if (mode === 'light') {
-                // 白底模式：顯示導航列，隱藏懸浮按鈕
+                // 白底 + 導航列
                 viewer.classList.remove('fullscreen-mode');
                 floatBtn.style.display = 'none';
-                frame.style.backgroundColor = '#ffffff'; // 內容區白底
+                frame.style.backgroundColor = '#ffffff'; 
             } else {
-                // 深色全螢幕模式：隱藏導航列，顯示懸浮按鈕
+                // 深底 + 全螢幕 + 懸浮按鈕
                 viewer.classList.add('fullscreen-mode');
                 floatBtn.style.display = 'flex';
-                frame.style.backgroundColor = '#0b1121'; // 內容區黑底
+                frame.style.backgroundColor = '#0b1121'; 
             }
             
-            // 3. 顯示介面
             viewer.style.display = 'flex';
             frame.src = url; 
         }
