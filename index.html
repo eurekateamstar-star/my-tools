@@ -21,7 +21,23 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <title>海山救護義消智慧平台入口</title>
-
+<!-- ★★★ 請將 OneSignal 程式碼放在這裡 (Title 下方) ★★★ -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(function(OneSignal) {
+    OneSignal.init({
+      // ★ 請務必將下方的 ID 換成您剛剛在 OneSignal 後台複製的 App ID
+      appId: "f65a536b-1426-4f8c-a403-d2a94e29915b", 
+      safari_web_id: "如有設定 Safari ID 可填入，沒有則可刪除此行",
+      notifyButton: {
+        enable: true, /* 這會在畫面右下角顯示一個紅色鈴鐺，讓使用者訂閱 */
+      },
+      allowLocalhostAsSecureOrigin: true,
+    });
+  });
+</script>
+<!-- ★★★ 結束 ★★★ -->
 <style>
     :root {
         --bg-color: #0b1121; 
