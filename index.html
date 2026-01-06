@@ -17,7 +17,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ★★★ 引入 LINE LIFF SDK ★★★ -->
+    <!-- LINE LIFF SDK -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <title>海山救護義消智慧平台入口</title>
@@ -41,7 +41,7 @@
             min-height: 100vh;
         }
 
-        /* ★★★ 鎖定畫面樣式 ★★★ */
+        /* ★★★ 鎖定畫面 ★★★ */
         #lock-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: #0b1121; z-index: 9999;
@@ -50,7 +50,6 @@
             transition: opacity 0.5s ease; padding: 20px; text-align: center;
         }
         
-        /* 主要內容預設隱藏 */
         #main-content { display: none; opacity: 0; transition: opacity 0.5s ease; }
 
         .loading-spinner {
@@ -68,20 +67,20 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 使用者歡迎詞 */
+        /* ★★★ 修改重點：歡迎詞樣式升級 ★★★ */
+        /* 把原本絕對定位改成流式佈局，並放大字體，變成大標題 */
         .user-welcome {
-            position: absolute; top: calc(15px + env(safe-area-inset-top)); left: 20px;
-            font-size: 13px; color: #94a3b8; font-weight: 500;
-        }
-
-        /* 搜尋框 */
-        .search-container { padding: 0 0 24px 0; }
-        .search-bar {
-            background-color: rgba(255,255,255,0.06); padding: 14px; border-radius: 16px;
-            color: #94a3b8; text-align: center; font-size: 14px;
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-            backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-weight: 500;
+            font-size: 24px; 
+            color: #ffffff; 
+            font-weight: 700;
+            margin-bottom: 30px; /* 與下方內容的距離 */
+            margin-top: 10px;
+            padding-left: 5px;
+            letter-spacing: 0.5px;
+            /* 加一點漸層文字效果，看起來更高級 */
+            background: linear-gradient(90deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         /* 分類標題 */
@@ -197,14 +196,8 @@
     <!-- ★★★ 主要內容區 ★★★ -->
     <div id="main-content">
         
-        <!-- 顯示使用者名稱 -->
+        <!-- ★★★ 修改重點：移除搜尋框，讓名字變成大標題顯示 ★★★ -->
         <div id="user-display" class="user-welcome"></div>
-
-        <div class="search-container">
-            <div class="search-bar">
-                <i class="fa-solid fa-magnifying-glass"></i> 搜尋應用系統...
-            </div>
-        </div>
 
         <div class="category-title">EMS 核心系統</div>
 
@@ -216,7 +209,6 @@
             </div>
 
             <!-- 2. 協勤記錄 (Light Mode, 頂部導航) -->
-            <!-- 已更新為指定連結 -->
             <div class="app-item" onclick="openApp('協勤記錄', 'https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', 'light')">
                 <div class="app-icon bg-record"><i class="fa-solid fa-file-signature"></i></div>
                 <span class="app-name">協勤記錄</span>
@@ -250,16 +242,15 @@
                 <div class="app-icon bg-map"><i class="fa-solid fa-map-location-dot"></i></div>
                 <span class="app-name">地圖</span>
             </a>
-            <!-- 協勤表單 (Google Sheets 連結，跳出開啟) -->
             <a href="https://docs.google.com/spreadsheets/d/1u-iyANnz3c8Vu_OathXEX8uqSPvbgWIQqghkbpPB-wU/edit?gid=157452443#gid=157452443" class="app-item" target="_blank">
                 <div class="app-icon bg-schedule"><i class="fa-solid fa-table-list"></i></div>
                 <span class="app-name">協勤表單</span>
             </a>
         </div>
 
-    </div> <!-- End Main Content -->
+    </div>
 
-    <!-- 全螢幕檢視器結構 -->
+    <!-- 全螢幕檢視器 -->
     <div id="web-viewer">
         
         <!-- 頂部導航列 (Light Mode 顯示) -->
@@ -275,7 +266,6 @@
             <i class="fa-solid fa-xmark"></i>
         </div>
 
-        <!-- 記得加上 allow 權限，不然相機不能用 -->
         <iframe id="content-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
     </div>
 
@@ -286,9 +276,9 @@
 
         // 初始化檢查
         window.onload = function() {
-            // 先檢查是否已經驗證過
             if (localStorage.getItem('isAuthorized') === 'true') {
                 const savedName = localStorage.getItem('userName') || '';
+                // 顯示大標題歡迎詞
                 if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
                 unlockScreen();
             } else {
@@ -317,18 +307,15 @@
             liff.getProfile().then(profile => {
                 const userId = profile.userId;
                 
-                // 呼叫你的 Google Script API 檢查 ID
                 fetch(CHECK_API_URL + "?userId=" + userId)
                 .then(response => response.json())
                 .then(data => {
                     if (data.allowed) {
-                        // 驗證通過
                         localStorage.setItem('isAuthorized', 'true');
                         localStorage.setItem('userName', data.name);
                         document.getElementById('user-display').innerText = "Hi, " + data.name;
                         unlockScreen();
                     } else {
-                        // 驗證失敗
                         document.getElementById('spinner').style.display = 'none';
                         document.getElementById('status-text').innerHTML = 
                             "⚠️ 存取被拒絕<br>您的 ID 未在白名單中<br>" + 
@@ -353,7 +340,6 @@
             }, 500);
         }
 
-        // --- App 開啟邏輯 ---
         function openApp(title, url, mode) {
             var viewer = document.getElementById('web-viewer');
             var frame = document.getElementById('content-frame');
@@ -363,12 +349,10 @@
             navTitle.innerText = title;
 
             if (mode === 'light') {
-                // 白底 + 導航列
                 viewer.classList.remove('fullscreen-mode');
                 floatBtn.style.display = 'none';
                 frame.style.backgroundColor = '#ffffff'; 
             } else {
-                // 深底 + 全螢幕 + 懸浮按鈕
                 viewer.classList.add('fullscreen-mode');
                 floatBtn.style.display = 'flex';
                 frame.style.backgroundColor = '#0b1121'; 
