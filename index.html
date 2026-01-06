@@ -270,16 +270,22 @@
     </div>
 
   
-   <script>
+   // ★★★ 請替換成你的設定 ★★★
     const MY_LIFF_ID = "2008830494-0OA0heXb";
     const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
 
     window.onload = function() {
-        if (localStorage.getItem('isAuthorized') === 'true') {
+        const isAuthorized = localStorage.getItem('isAuthorized') === 'true';
+        const savedUid = localStorage.getItem('currentUserId');
+
+        // ★★★ 修正邏輯：必須「已授權」且「有 UserID」才算通過 ★★★
+        if (isAuthorized && savedUid && savedUid !== "null" && savedUid !== "undefined") {
             const savedName = localStorage.getItem('userName') || '';
             if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
             unlockScreen();
         } else {
+            // 資料不全或未登入，強制重新驗證 LINE
+            console.log("資料缺失，重新驗證 LIFF...");
             initializeLiff();
         }
     };
@@ -295,7 +301,7 @@
             })
             .catch(err => {
                 console.error(err);
-                document.getElementById('status-text').innerHTML = "系統初始化失敗";
+                document.getElementById('status-text').innerText = "系統初始化失敗，請重新整理";
             });
     }
 
