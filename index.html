@@ -22,24 +22,62 @@
 
     <title>海山救護義消智慧平台入口</title>
 
-    <!-- ★★★ OneSignal 推播 SDK 設定 ★★★ -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <!-- ★★★ OneSignal 智慧載入與按鈕邏輯 (防爆版) ★★★ -->
     <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(function(OneSignal) {
-        OneSignal.init({
-          appId: "f65a536b-1426-4f8c-a403-d2a94e29915b",
-          
-          // ★★★ 關鍵修正：指定 GitHub 專案路徑，解決 404 錯誤 ★★★
-          path: "/my-tools/", 
+      // 1. 定義您的 GitHub Pages 網址 (請確認網址無誤)
+      const MY_GITHUB_URL = "https://eurekateamstar-star.github.io/my-tools/";
 
-          // 關閉預設鈴鐺 (改用我們自製的按鈕)
-          notifyButton: {
-            enable: false, 
-          },
-          allowLocalhostAsSecureOrigin: true,
-        });
-      });
+      // 2. 按鈕點擊功能 (保證可執行，不會因為 404 當機)
+      function forceSubscribe() {
+          // 判斷是否在 Iframe (LIFF) 中
+          if (window.self !== window.top) {
+              // 如果在 LIFF/Iframe 裡，跳出提示並開新視窗
+              alert("為了確保能收到通知，即將開啟設定頁面，請在新視窗點擊「允許」！");
+              window.open(MY_GITHUB_URL, "_blank");
+          } else {
+              // 如果已經在外部網頁，直接觸發訂閱視窗
+              if (window.OneSignalDeferred) {
+                  window.OneSignalDeferred.push(function(OneSignal) {
+                      OneSignal.Slidedown.promptPush();
+                  });
+              } else {
+                  alert("通知系統載入中，請稍後再試...");
+                  location.reload();
+              }
+          }
+      }
+
+      // 3. 只有在「非 Iframe」環境 (也就是跳轉後的網頁) 才載入 OneSignal
+      // 這樣可以徹底解決 LIFF 裡面的 404 紅字錯誤
+      if (window.self === window.top) {
+          
+          console.log("偵測到外部環境：開始載入 OneSignal...");
+          
+          var script = document.createElement('script');
+          script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+          script.defer = true;
+          document.head.appendChild(script);
+
+          window.OneSignalDeferred = window.OneSignalDeferred || [];
+          window.OneSignalDeferred.push(function(OneSignal) {
+            OneSignal.init({
+              appId: "f65a536b-1426-4f8c-a403-d2a94e29915b",
+              
+              // ★★★ 指定 GitHub 專案路徑 ★★★
+              path: "/my-tools/", 
+              
+              notifyButton: {
+                enable: false, // 關閉預設鈴鐺，改用自動跳出
+              },
+              allowLocalhostAsSecureOrigin: true,
+            });
+            
+            // 進來網頁直接詢問
+            OneSignal.Slidedown.promptPush();
+          });
+      } else {
+          console.log("偵測到 Iframe 環境：暫停 OneSignal 以免報錯，按鈕功能保持正常。");
+      }
     </script>
     <!-- ★★★ 結束 ★★★ -->
 
@@ -340,21 +378,6 @@
     // 智慧平台的原始網址 (用於比對和預載)
     const MAIN_APP_URL = "https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec";
     const MAIN_APP_ID_PART = "AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL";
-
-    // ★★★ 強制訂閱 JS 邏輯 ★★★
-    function forceSubscribe() {
-        var githubUrl = "https://eurekateamstar-star.github.io/my-tools/";
-        
-        // 檢查是否在 Iframe 中
-        if (window.self !== window.top) {
-            alert("為了確保能收到通知，請在新視窗中點擊「允許」！");
-            window.open(githubUrl, "_blank");
-        } else {
-            window.OneSignalDeferred.push(function(OneSignal) {
-                OneSignal.Slidedown.promptPush();
-            });
-        }
-    }
 
     window.onload = function() {
         // 防止卡死重置按鈕
