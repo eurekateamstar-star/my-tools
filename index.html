@@ -22,64 +22,6 @@
 
     <title>海山救護義消智慧平台入口</title>
 
-    // --- 第一部分：按鈕功能 (保證優先執行) ---
-  // 定義您的 GitHub Pages 網址
-  const GITHUB_PAGE_URL = "https://eurekateamstar-star.github.io/my-tools/";
-
-  // 這個函式現在獨立定義，不受 OneSignal 錯誤影響
-  function forceSubscribe() {
-      console.log("按鈕被點擊了！");
-      
-      // 1. 檢查是否在 Iframe (LIFF/GAS) 裡面
-      if (window.self !== window.top) {
-          alert("為了能順利接收通知，系統將開啟新視窗，請在新視窗中點擊「允許」！");
-          // 強制開新視窗
-          window.open(GITHUB_PAGE_URL, "_blank");
-      } 
-      // 2. 如果已經在外部視窗 (GitHub Pages)
-      else {
-          if (typeof OneSignal !== 'undefined') {
-              OneSignal.Slidedown.promptPush();
-          } else {
-              alert("通知系統載入中... 請稍後再試，或重新整理網頁。");
-              location.reload();
-          }
-      }
-  }
-
-  // --- 第二部分：OneSignal 載入邏輯 (只在正確環境執行) ---
-  // 只有當「不是在 Iframe 裡」的時候，才去下載 OneSignal
-  // 這樣可以 100% 避免在 GAS 裡面出現 404 紅字錯誤
-  if (window.self === window.top) {
-      console.log("偵測到外部環境，開始載入 OneSignal...");
-      
-      var script = document.createElement('script');
-      script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
-      script.defer = true;
-      document.head.appendChild(script);
-
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      window.OneSignalDeferred.push(function(OneSignal) {
-        OneSignal.init({
-          appId: "f65a536b-1426-4f8c-a403-d2a94e29915b",
-          
-          // ★ 指定檔案路徑
-          path: "/my-tools/", 
-          
-          notifyButton: {
-            enable: false, // 關閉預設鈴鐺
-          },
-          allowLocalhostAsSecureOrigin: true,
-        });
-        
-        // 自動跳出詢問
-        OneSignal.Slidedown.promptPush();
-      });
-  } else {
-      console.log("偵測到 Iframe 環境：停止載入 OneSignal，避免 404 錯誤。");
-  }
-</script>
-
     <style>
         :root {
             --bg-color: #0b1121; 
@@ -275,7 +217,7 @@
     
     <div id="user-display" class="user-welcome"></div>
 
-    <!-- ★★★ 強制訂閱按鈕 (整合版) ★★★ -->
+    <!-- ★★★ 強制訂閱按鈕 (防爆版) ★★★ -->
     <div class="glass-panel">
         <div style="display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-bell" style="color: #fcd34d; font-size: 20px;"></i>
@@ -369,200 +311,218 @@
     <iframe id="temp-frame" class="app-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
 
 </div>
+
+<!-- ★★★ OneSignal 終極防彈版指令碼 (放在最底部確保安全) ★★★ -->
 <script>
-    // ★★★ 設定區 ★★★
-    const MY_LIFF_ID = "2008830494-0OA0heXb";
-    const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
-    
-    // 智慧平台的原始網址 (用於比對和預載)
-    const MAIN_APP_URL = "https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec";
-    const MAIN_APP_ID_PART = "AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL";
+  // --- 第一部分：按鈕功能 (保證優先執行) ---
+  // 定義您的 GitHub Pages 網址
+  const GITHUB_PAGE_URL = "https://eurekateamstar-star.github.io/my-tools/";
 
-    window.onload = function() {
-        // 防止卡死重置按鈕
-        setTimeout(() => {
-            const resetBtn = document.getElementById('reset-btn');
-            if(resetBtn && document.getElementById('lock-screen').style.display !== 'none') {
-                resetBtn.style.display = 'block';
-                document.getElementById('status-text').innerText = "連線似乎有問題...";
-            }
-        }, 3000);
+  // 這個函式現在獨立定義，不受 OneSignal 錯誤影響
+  function forceSubscribe() {
+      console.log("按鈕被點擊了！");
+      
+      // 1. 檢查是否在 Iframe (LIFF/GAS) 裡面
+      if (window.self !== window.top) {
+          alert("為了能順利接收通知，系統將開啟新視窗，請在新視窗中點擊「允許」！");
+          // 強制開新視窗
+          window.open(GITHUB_PAGE_URL, "_blank");
+      } 
+      // 2. 如果已經在外部視窗 (GitHub Pages)
+      else {
+          if (typeof OneSignal !== 'undefined') {
+              OneSignal.Slidedown.promptPush();
+          } else {
+              alert("通知系統載入中... 請稍後再試。");
+              location.reload();
+          }
+      }
+  }
 
-        const isAuthorized = localStorage.getItem('isAuthorized') === 'true';
-        const savedUid = localStorage.getItem('currentUserId');
+  // --- 第二部分：OneSignal 載入邏輯 (只在正確環境執行) ---
+  // 只有當「不是在 Iframe 裡」的時候，才去下載 OneSignal
+  // 這樣可以 100% 避免在 GAS 裡面出現 404 紅字錯誤
+  if (window.self === window.top) {
+      console.log("偵測到外部環境，開始載入 OneSignal...");
+      
+      var script = document.createElement('script');
+      script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+      script.defer = true;
+      document.head.appendChild(script);
 
-        if (isAuthorized && savedUid && savedUid !== "null" && savedUid !== "undefined") {
-            const savedName = localStorage.getItem('userName') || '';
-            if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
-            
-            unlockScreen();
-            
-            // 驗證通過後，立刻在背景預載主系統
-            preloadMainApp(savedUid);
-            
-        } else {
-            console.log("需要驗證...");
-            initializeLiff();
-        }
-    };
-
-    // ★★★ 預先載入函式 (只針對 Main Frame) ★★★
-    function preloadMainApp(userId) {
-        console.log("🚀 開始背景預載主系統...");
-        const mainFrame = document.getElementById('main-frame');
-        
-        // 組裝帶有 UID 的網址
-        let targetUrl = MAIN_APP_URL;
-        if (targetUrl.includes('?')) {
-            targetUrl += "&uid=" + userId;
-        } else {
-            targetUrl += "?uid=" + userId;
-        }
-
-        // 設定主系統 iframe，之後這個 iframe 就不會再換網址了
-        mainFrame.src = targetUrl;
-    }
-
-    // ★★★ 開啟 App 邏輯 (包含傳送姓名 + 修正拼字錯誤) ★★★
-    function openApp(title, url, mode) {
-        var viewer = document.getElementById('web-viewer');
-        var mainFrame = document.getElementById('main-frame');
-        var tempFrame = document.getElementById('temp-frame');
-        var navTitle = document.getElementById('nav-title');
-        var floatBtn = document.getElementById('float-close-btn');
-        var userId = localStorage.getItem('currentUserId');
-        
-        // 1. 取得儲存的姓名
-        var userName = localStorage.getItem('userName') || '';
-
-        navTitle.innerText = title;
-
-        // 判斷是否為「智慧平台 (主系統)」
-        const isMainApp = url.includes(MAIN_APP_ID_PART);
-        
-        let activeFrame;
-
-        if (isMainApp) {
-            console.log("⚡ 開啟智慧平台 (使用快取，不重整)");
-            mainFrame.classList.add('active');
-            tempFrame.classList.remove('active');
-            activeFrame = mainFrame;
-        } else {
-            // ★★★ 這裡原本打錯成 onsole，已修正為 console ★★★
-            console.log("🔄 開啟其他功能 (強制載入新網址)");
-            
-            mainFrame.classList.remove('active');
-            tempFrame.classList.add('active');
-            activeFrame = tempFrame;
-
-            // 2. 組裝網址 (加入 uid 和 name)
-            let finalUrl = url;
-            let separator = finalUrl.includes('?') ? '&' : '?';
-
-            if (userId && userId !== "null") {
-                // 使用 encodeURIComponent 避免中文亂碼
-                finalUrl += separator + "uid=" + userId + "&name=" + encodeURIComponent(userName);
-            }
-
-            // 強制載入新頁面
-            tempFrame.src = finalUrl;
-        }
-
-        // 設定介面模式 (Light/Dark)
-        if (mode === 'light') {
-            viewer.classList.remove('fullscreen-mode');
-            floatBtn.style.display = 'none';
-            activeFrame.style.backgroundColor = '#ffffff'; 
-        } else {
-            viewer.classList.add('fullscreen-mode');
-            floatBtn.style.display = 'flex';
-            activeFrame.style.backgroundColor = '#0b1121'; 
-        }
-
-        // 顯示視窗
-        viewer.style.display = 'flex';
-    }
-
-    // ★★★ 關閉 App 邏輯 ★★★
-    function closeApp() {
-        var viewer = document.getElementById('web-viewer');
-        var tempFrame = document.getElementById('temp-frame');
-        var mainFrame = document.getElementById('main-frame');
-
-        // 隱藏視窗
-        viewer.style.display = 'none'; 
-        
-        // 移除顯示狀態
-        tempFrame.classList.remove('active');
-        mainFrame.classList.remove('active');
-
-        // 清空暫存 Frame
-        tempFrame.src = "about:blank";
-    }
-
-    // --- 以下為原本的輔助功能 ---
-
-    function forceReset() {
-        localStorage.clear();
-        alert("系統已重置，將重新載入。");
-        window.location.href = window.location.href.split('?')[0];
-    }
-
-    function initializeLiff() {
-        liff.init({ liffId: MY_LIFF_ID })
-            .then(() => {
-                if (liff.isLoggedIn()) {
-                    checkPermission();
-                } else {
-                    liff.login();
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('status-text').innerText = "初始化失敗";
-                document.getElementById('reset-btn').style.display = 'block';
-            });
-    }
-
-    function checkPermission() {
-        document.getElementById('status-text').innerText = "正在確認權限...";
-        liff.getProfile().then(profile => {
-            const userId = profile.userId;
-            fetch(CHECK_API_URL + "?userId=" + userId)
-            .then(response => response.json())
-            .then(data => {
-                if (data.allowed) {
-                    localStorage.setItem('isAuthorized', 'true');
-                    localStorage.setItem('userName', data.name);
-                    localStorage.setItem('currentUserId', userId); 
-                    document.getElementById('user-display').innerText = "Hi, " + data.name;
-                    unlockScreen();
-                    
-                    // 第一次驗證成功後，也要馬上預載
-                    preloadMainApp(userId);
-                } else {
-                    document.getElementById('spinner').style.display = 'none';
-                    document.getElementById('status-text').innerHTML = "⚠️ 無權限<br>ID: <div class='error-id'>" + userId + "</div>";
-                    document.getElementById('reset-btn').style.display = 'block';
-                }
-            })
-            .catch(err => {
-                 document.getElementById('status-text').innerHTML = "連線錯誤";
-                 document.getElementById('reset-btn').style.display = 'block';
-            });
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      window.OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.init({
+          appId: "f65a536b-1426-4f8c-a403-d2a94e29915b",
+          path: "/my-tools/", 
+          notifyButton: {
+            enable: false, // 關閉預設鈴鐺，使用我們自製的按鈕
+          },
+          allowLocalhostAsSecureOrigin: true,
         });
-    }
+        
+        // 自動跳出詢問
+        OneSignal.Slidedown.promptPush();
+      });
+  } else {
+      console.log("偵測到 Iframe 環境：停止載入 OneSignal，避免 404 錯誤。");
+  }
 
-    function unlockScreen() {
-        const lockScreen = document.getElementById('lock-screen');
-        const mainContent = document.getElementById('main-content');
-        lockScreen.style.opacity = '0';
-        mainContent.style.display = 'block';
-        setTimeout(() => {
-            lockScreen.style.display = 'none';
-            mainContent.style.opacity = '1';
-        }, 500);
-    }
+  // --- 以下是原本的系統邏輯 ---
+
+  const MY_LIFF_ID = "2008830494-0OA0heXb";
+  const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
+  const MAIN_APP_URL = "https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec";
+  const MAIN_APP_ID_PART = "AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL";
+
+  window.onload = function() {
+      setTimeout(() => {
+          const resetBtn = document.getElementById('reset-btn');
+          if(resetBtn && document.getElementById('lock-screen').style.display !== 'none') {
+              resetBtn.style.display = 'block';
+              document.getElementById('status-text').innerText = "連線似乎有問題...";
+          }
+      }, 3000);
+
+      const isAuthorized = localStorage.getItem('isAuthorized') === 'true';
+      const savedUid = localStorage.getItem('currentUserId');
+
+      if (isAuthorized && savedUid && savedUid !== "null" && savedUid !== "undefined") {
+          const savedName = localStorage.getItem('userName') || '';
+          if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
+          
+          unlockScreen();
+          preloadMainApp(savedUid);
+      } else {
+          console.log("需要驗證...");
+          initializeLiff();
+      }
+  };
+
+  function preloadMainApp(userId) {
+      console.log("🚀 開始背景預載主系統...");
+      const mainFrame = document.getElementById('main-frame');
+      let targetUrl = MAIN_APP_URL;
+      if (targetUrl.includes('?')) targetUrl += "&uid=" + userId;
+      else targetUrl += "?uid=" + userId;
+      mainFrame.src = targetUrl;
+  }
+
+  function openApp(title, url, mode) {
+      var viewer = document.getElementById('web-viewer');
+      var mainFrame = document.getElementById('main-frame');
+      var tempFrame = document.getElementById('temp-frame');
+      var navTitle = document.getElementById('nav-title');
+      var floatBtn = document.getElementById('float-close-btn');
+      var userId = localStorage.getItem('currentUserId');
+      var userName = localStorage.getItem('userName') || '';
+
+      navTitle.innerText = title;
+      const isMainApp = url.includes(MAIN_APP_ID_PART);
+      
+      let activeFrame;
+
+      if (isMainApp) {
+          console.log("⚡ 開啟智慧平台 (使用快取，不重整)");
+          mainFrame.classList.add('active');
+          tempFrame.classList.remove('active');
+          activeFrame = mainFrame;
+      } else {
+          console.log("🔄 開啟其他功能");
+          mainFrame.classList.remove('active');
+          tempFrame.classList.add('active');
+          activeFrame = tempFrame;
+
+          let finalUrl = url;
+          let separator = finalUrl.includes('?') ? '&' : '?';
+
+          if (userId && userId !== "null") {
+              finalUrl += separator + "uid=" + userId + "&name=" + encodeURIComponent(userName);
+          }
+          tempFrame.src = finalUrl;
+      }
+
+      if (mode === 'light') {
+          viewer.classList.remove('fullscreen-mode');
+          floatBtn.style.display = 'none';
+          activeFrame.style.backgroundColor = '#ffffff'; 
+      } else {
+          viewer.classList.add('fullscreen-mode');
+          floatBtn.style.display = 'flex';
+          activeFrame.style.backgroundColor = '#0b1121'; 
+      }
+      viewer.style.display = 'flex';
+  }
+
+  function closeApp() {
+      var viewer = document.getElementById('web-viewer');
+      var tempFrame = document.getElementById('temp-frame');
+      var mainFrame = document.getElementById('main-frame');
+      viewer.style.display = 'none'; 
+      tempFrame.classList.remove('active');
+      mainFrame.classList.remove('active');
+      tempFrame.src = "about:blank";
+  }
+
+  function forceReset() {
+      localStorage.clear();
+      alert("系統已重置，將重新載入。");
+      window.location.href = window.location.href.split('?')[0];
+  }
+
+  function initializeLiff() {
+      liff.init({ liffId: MY_LIFF_ID })
+          .then(() => {
+              if (liff.isLoggedIn()) {
+                  checkPermission();
+              } else {
+                  liff.login();
+              }
+          })
+          .catch(err => {
+              console.error(err);
+              document.getElementById('status-text').innerText = "初始化失敗";
+              document.getElementById('reset-btn').style.display = 'block';
+          });
+  }
+
+  function checkPermission() {
+      document.getElementById('status-text').innerText = "正在確認權限...";
+      liff.getProfile().then(profile => {
+          const userId = profile.userId;
+          fetch(CHECK_API_URL + "?userId=" + userId)
+          .then(response => response.json())
+          .then(data => {
+              if (data.allowed) {
+                  localStorage.setItem('isAuthorized', 'true');
+                  localStorage.setItem('userName', data.name);
+                  localStorage.setItem('currentUserId', userId); 
+                  document.getElementById('user-display').innerText = "Hi, " + data.name;
+                  unlockScreen();
+                  preloadMainApp(userId);
+              } else {
+                  document.getElementById('spinner').style.display = 'none';
+                  document.getElementById('status-text').innerHTML = "⚠️ 無權限<br>ID: <div class='error-id'>" + userId + "</div>";
+                  document.getElementById('reset-btn').style.display = 'block';
+              }
+          })
+          .catch(err => {
+               document.getElementById('status-text').innerHTML = "連線錯誤";
+               document.getElementById('reset-btn').style.display = 'block';
+          });
+      });
+  }
+
+  function unlockScreen() {
+      const lockScreen = document.getElementById('lock-screen');
+      const mainContent = document.getElementById('main-content');
+      lockScreen.style.opacity = '0';
+      mainContent.style.display = 'block';
+      setTimeout(() => {
+          lockScreen.style.display = 'none';
+          mainContent.style.opacity = '1';
+      }, 500);
+  }
 </script>
 </body>
 </html>
