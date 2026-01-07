@@ -21,7 +21,6 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <title>海山救護義消智慧平台入口</title>
-<!-- ★★★ 請將 OneSignal 程式碼放在這裡 (Title 下方) ★★★ -->
 <!-- OneSignal 推播 SDK -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
@@ -30,7 +29,6 @@
     OneSignal.init({
       appId: "f65a536b-1426-4f8c-a403-d2a94e29915b",
       // ★ 關閉預設鈴鐺 (因為它在 Iframe 會壞掉)
-           path: "/my-tools/",
       notifyButton: {
         enable: false, 
       },
@@ -98,7 +96,7 @@
         -webkit-text-fill-color: transparent;
     }
 
-    <!-- ★★★ 強制訂閱按鈕 ★★★ -->
+<!-- ★★★ 強制訂閱按鈕 ★★★ -->
 <div class="glass-panel" style="margin: 15px 24px; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #fcd34d;">
     <div style="display: flex; align-items: center; gap: 10px;">
         <i class="fa-solid fa-bell" style="color: #fcd34d; font-size: 20px;"></i>
@@ -137,7 +135,6 @@ function forceSubscribe() {
         });
     }
 }
-</script>
 
     /* 分類標題 */
     .category-title {
