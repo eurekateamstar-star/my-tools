@@ -22,16 +22,16 @@
 
 <title>海山救護義消智慧平台入口</title>
 <!-- ★★★ 請將 OneSignal 程式碼放在這裡 (Title 下方) ★★★ -->
+<!-- OneSignal 推播 SDK -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(function(OneSignal) {
     OneSignal.init({
-      // ★ 請務必將下方的 ID 換成您剛剛在 OneSignal 後台複製的 App ID
-      appId: "f65a536b-1426-4f8c-a403-d2a94e29915b", 
-     
+      appId: "f65a536b-1426-4f8c-a403-d2a94e29915b",
+      // ★ 關閉預設鈴鐺 (因為它在 Iframe 會壞掉)
       notifyButton: {
-        enable: true, /* 這會在畫面右下角顯示一個紅色鈴鐺，讓使用者訂閱 */
+        enable: false, 
       },
       allowLocalhostAsSecureOrigin: true,
     });
@@ -96,6 +96,47 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
+
+    <!-- ★★★ 強制訂閱按鈕 ★★★ -->
+<div class="glass-panel" style="margin: 15px 24px; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #fcd34d;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-bell" style="color: #fcd34d; font-size: 20px;"></i>
+        <div>
+            <div style="font-size: 15px; font-weight: 700; color: white;">開啟推播通知</div>
+            <div style="font-size: 12px; color: #94a3b8;">接收最新勤務與公告</div>
+        </div>
+    </div>
+    <button onclick="forceSubscribe()" style="
+        background: transparent; 
+        border: 1px solid #3b82f6; 
+        color: #3b82f6; 
+        padding: 6px 12px; 
+        border-radius: 20px; 
+        font-size: 13px; 
+        cursor: pointer;">
+        去開啟
+    </button>
+</div>
+
+<!-- 強制訂閱的 JS 邏輯 -->
+<script>
+function forceSubscribe() {
+    // 1. 定義您的 GitHub Pages 網址 (不是 GAS 網址喔！)
+    var githubUrl = "https://eurekateamstar-star.github.io/my-tools/";
+    
+    // 2. 檢查是否在 Iframe 中
+    if (window.self !== window.top) {
+        // 如果在 Iframe 裡，跳出新視窗
+        alert("為了確保能收到通知，請在新視窗中點擊「允許」！");
+        window.open(githubUrl, "_blank");
+    } else {
+        // 如果已經是直接開啟，則正常跳出提示
+        window.OneSignalDeferred.push(function(OneSignal) {
+            OneSignal.Slidedown.promptPush();
+        });
+    }
+}
+</script>
 
     /* 分類標題 */
     .category-title {
