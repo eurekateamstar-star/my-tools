@@ -3,246 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<!-- PWA 設定 -->
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="海山救護">
-<meta name="theme-color" content="#0b1121">
+    <!-- PWA 設定 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="海山救護">
+    <meta name="theme-color" content="#0b1121">
 
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon1.jpg"> 
-<link rel="icon" type="image/jpeg" href="icon1.jpg">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon1.jpg"> 
+    <link rel="icon" type="image/jpeg" href="icon1.jpg">
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- LINE LIFF SDK -->
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- LINE LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-<title>海山救護義消智慧平台入口</title>
-<!-- OneSignal 推播 SDK -->
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(function(OneSignal) {
-    OneSignal.init({
-      appId: "f65a536b-1426-4f8c-a403-d2a94e29915b",
-      // ★ 關閉預設鈴鐺 (因為它在 Iframe 會壞掉)
-      notifyButton: {
-        enable: false, 
-      },
-      allowLocalhostAsSecureOrigin: true,
-    });
-  });
-</script>
-<!-- ★★★ 結束 ★★★ -->
-<style>
-    :root {
-        --bg-color: #0b1121; 
-        --text-color: #ffffff;
-        --header-height: 50px;
-    }
+    <title>海山救護義消智慧平台入口</title>
 
-    body {
-        background-color: var(--bg-color);
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-        margin: 0;
-        padding: 20px;
-        padding-top: calc(20px + env(safe-area-inset-top)); 
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        color: var(--text-color);
-        min-height: 100vh;
-    }
+    <!-- ★★★ OneSignal 推播 SDK 設定 ★★★ -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.init({
+          appId: "f65a536b-1426-4f8c-a403-d2a94e29915b",
+          
+          // ★★★ 關鍵修正：指定 GitHub 專案路徑，解決 404 錯誤 ★★★
+          path: "/my-tools/", 
 
-    /* ★★★ 鎖定畫面 ★★★ */
-    #lock-screen {
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background-color: #0b1121; z-index: 9999;
-        display: flex; flex-direction: column;
-        justify-content: center; align-items: center;
-        transition: opacity 0.5s ease; padding: 20px; text-align: center;
-    }
-    
-    #main-content { display: none; opacity: 0; transition: opacity 0.5s ease; }
-
-    .loading-spinner {
-        width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1);
-        border-top: 4px solid #3b82f6; border-radius: 50%;
-        animation: spin 1s linear infinite; margin-bottom: 20px;
-    }
-    
-    .status-text { font-size: 16px; color: #94a3b8; font-weight: 500; line-height: 1.6; }
-    .error-id { 
-        margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); 
-        border-radius: 8px; font-family: monospace; user-select: text; 
-        color: #f87171; border: 1px dashed #f87171;
-    }
-
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    /* 歡迎詞 */
-    .user-welcome {
-        font-size: 24px; 
-        color: #ffffff; 
-        font-weight: 700;
-        margin-bottom: 30px; 
-        margin-top: 10px;
-        padding-left: 5px;
-        letter-spacing: 0.5px;
-        background: linear-gradient(90deg, #ffffff, #94a3b8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-<!-- ★★★ 強制訂閱按鈕 ★★★ -->
-<div class="glass-panel" style="margin: 15px 24px; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #fcd34d;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <i class="fa-solid fa-bell" style="color: #fcd34d; font-size: 20px;"></i>
-        <div>
-            <div style="font-size: 15px; font-weight: 700; color: white;">開啟推播通知</div>
-            <div style="font-size: 12px; color: #94a3b8;">接收最新勤務與公告</div>
-        </div>
-    </div>
-    <button onclick="forceSubscribe()" style="
-        background: transparent; 
-        border: 1px solid #3b82f6; 
-        color: #3b82f6; 
-        padding: 6px 12px; 
-        border-radius: 20px; 
-        font-size: 13px; 
-        cursor: pointer;">
-        去開啟
-    </button>
-</div>
-
-<!-- 強制訂閱的 JS 邏輯 -->
-<script>
-function forceSubscribe() {
-    // 1. 定義您的 GitHub Pages 網址 (不是 GAS 網址喔！)
-    var githubUrl = "https://eurekateamstar-star.github.io/my-tools/";
-    
-    // 2. 檢查是否在 Iframe 中
-    if (window.self !== window.top) {
-        // 如果在 Iframe 裡，跳出新視窗
-        alert("為了確保能收到通知，請在新視窗中點擊「允許」！");
-        window.open(githubUrl, "_blank");
-    } else {
-        // 如果已經是直接開啟，則正常跳出提示
-        window.OneSignalDeferred.push(function(OneSignal) {
-            OneSignal.Slidedown.promptPush();
+          // 關閉預設鈴鐺 (改用我們自製的按鈕)
+          notifyButton: {
+            enable: false, 
+          },
+          allowLocalhostAsSecureOrigin: true,
         });
-    }
-}
+      });
+    </script>
+    <!-- ★★★ 結束 ★★★ -->
 
-    /* 分類標題 */
-    .category-title {
-        font-size: 18px; font-weight: 600; color: rgba(255, 255, 255, 0.9);
-        margin-bottom: 20px; margin-top: 5px; padding-left: 8px;
-        border-left: 3px solid #3b82f6; line-height: 1;
-    }
+    <style>
+        :root {
+            --bg-color: #0b1121; 
+            --text-color: #ffffff;
+            --header-height: 50px;
+        }
 
-    /* 網格排列 */
-    .app-grid {
-        display: grid; grid-template-columns: repeat(4, 1fr);
-        row-gap: 32px; column-gap: 12px; margin-bottom: 45px;
-    }
+        body {
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top)); 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            color: var(--text-color);
+            min-height: 100vh;
+        }
 
-    .app-item {
-        display: flex; flex-direction: column; align-items: center;
-        text-decoration: none; position: relative; cursor: pointer;
-    }
+        /* ★★★ 鎖定畫面 ★★★ */
+        #lock-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #0b1121; z-index: 9999;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            transition: opacity 0.5s ease; padding: 20px; text-align: center;
+        }
+        
+        #main-content { display: none; opacity: 0; transition: opacity 0.5s ease; }
 
-    /* App 圖示 */
-    .app-icon {
-        width: 68px; height: 68px; border-radius: 18px;
-        display: flex; justify-content: center; align-items: center;
-        color: white; font-size: 28px;
-        position: relative; margin-bottom: 10px;
-        border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.25);
-        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .app-icon::before {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        border-radius: 18px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 40%);
-        pointer-events: none;
-    }
-    .app-item:active .app-icon { transform: scale(0.9); filter: brightness(1.1); }
+        .loading-spinner {
+            width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #3b82f6; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        
+        .status-text { font-size: 16px; color: #94a3b8; font-weight: 500; line-height: 1.6; }
+        .error-id { 
+            margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); 
+            border-radius: 8px; font-family: monospace; user-select: text; 
+            color: #f87171; border: 1px dashed #f87171;
+        }
 
-    .app-name {
-        font-size: 12px; color: #cbd5e1; text-align: center; width: 80px;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        line-height: 1.4; font-weight: 500;
-    }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 配色 */
-    .bg-medical { background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%); box-shadow: 0 8px 20px rgba(255, 75, 43, 0.35); }
-    .bg-record { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 8px 20px rgba(118, 75, 162, 0.35); }
-    .bg-check { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); box-shadow: 0 8px 20px rgba(56, 239, 125, 0.3); }
-    .bg-exam { background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); box-shadow: 0 8px 20px rgba(245, 175, 25, 0.3); }
-    .bg-google { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 8px 20px rgba(0, 242, 254, 0.3); }
-    .bg-ai { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); box-shadow: 0 8px 20px rgba(56, 249, 215, 0.3); }
-    .bg-map { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); box-shadow: 0 8px 20px rgba(250, 112, 154, 0.3); }
-    .bg-schedule { background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%); box-shadow: 0 8px 20px rgba(74, 0, 224, 0.3); }
+        /* 歡迎詞 */
+        .user-welcome {
+            font-size: 24px; 
+            color: #ffffff; 
+            font-weight: 700;
+            margin-bottom: 20px; 
+            margin-top: 10px;
+            padding-left: 5px;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    /* 視窗容器 */
-    #web-viewer {
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        z-index: 1000; display: none; flex-direction: column;
-        background-color: var(--bg-color);
-        transition: background-color 0.3s ease;
-    }
+        /* 推播按鈕樣式 */
+        .glass-panel {
+            margin-bottom: 30px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 4px solid #fcd34d;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    /* 頂部導航列 (Light Mode) */
-    #nav-header {
-        width: 100%; height: var(--header-height); padding-top: env(safe-area-inset-top); 
-        background-color: #0b1121; display: flex; align-items: center; justify-content: center;
-        position: relative; box-shadow: 0 1px 0 rgba(255,255,255,0.1); flex-shrink: 0; z-index: 2000;
-    }
-    #nav-title { font-size: 17px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px; }
-    
-    .close-btn-nav {
-        position: absolute; right: 15px; top: env(safe-area-inset-top); height: var(--header-height);
-        display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 5px;
-    }
-    .close-icon-circle {
-        width: 30px; height: 30px; background: rgba(255,255,255,0.15); border-radius: 50%;
-        display: flex; justify-content: center; align-items: center; color: white;
-    }
+        /* 分類標題 */
+        .category-title {
+            font-size: 18px; font-weight: 600; color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px; margin-top: 5px; padding-left: 8px;
+            border-left: 3px solid #3b82f6; line-height: 1;
+        }
 
-    /* Dark Mode (全螢幕 + 懸浮按鈕) */
-    #web-viewer.fullscreen-mode #nav-header { display: none; }
-    #web-viewer.fullscreen-mode {
-        padding-top: env(safe-area-inset-top); 
-        background-color: #0b1121;
-    }
-    
-    #float-close-btn {
-        display: none; position: absolute;
-        top: calc(15px + env(safe-area-inset-top)); right: 20px;
-        width: 36px; height: 36px; background: rgba(0,0,0,0.5);
-        border-radius: 50%; color: white;
-        justify-content: center; align-items: center;
-        backdrop-filter: blur(4px); z-index: 3000;
-        border: 1px solid rgba(255,255,255,0.2);
-        cursor: pointer;
-    }
+        /* 網格排列 */
+        .app-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            row-gap: 32px; column-gap: 12px; margin-bottom: 45px;
+        }
 
-    /* ★★★ 修改重點：Iframe 樣式與狀態管理 ★★★ */
-    .app-frame {
-        width: 1px; min-width: 100%; flex: 1; border: none; 
-        padding-bottom: env(safe-area-inset-bottom);
-        display: none; /* 預設全部隱藏 */
-    }
-    
-    /* 只有被加上 active 的 iframe 才會顯示 */
-    .app-frame.active {
-        display: block;
-    }
+        .app-item {
+            display: flex; flex-direction: column; align-items: center;
+            text-decoration: none; position: relative; cursor: pointer;
+        }
 
-</style>
+        /* App 圖示 */
+        .app-icon {
+            width: 68px; height: 68px; border-radius: 18px;
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 28px;
+            position: relative; margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.25);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .app-icon::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 40%);
+            pointer-events: none;
+        }
+        .app-item:active .app-icon { transform: scale(0.9); filter: brightness(1.1); }
+
+        .app-name {
+            font-size: 12px; color: #cbd5e1; text-align: center; width: 80px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            line-height: 1.4; font-weight: 500;
+        }
+
+        /* 配色 */
+        .bg-medical { background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%); box-shadow: 0 8px 20px rgba(255, 75, 43, 0.35); }
+        .bg-record { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 8px 20px rgba(118, 75, 162, 0.35); }
+        .bg-check { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); box-shadow: 0 8px 20px rgba(56, 239, 125, 0.3); }
+        .bg-exam { background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); box-shadow: 0 8px 20px rgba(245, 175, 25, 0.3); }
+        .bg-google { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 8px 20px rgba(0, 242, 254, 0.3); }
+        .bg-ai { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); box-shadow: 0 8px 20px rgba(56, 249, 215, 0.3); }
+        .bg-map { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); box-shadow: 0 8px 20px rgba(250, 112, 154, 0.3); }
+        .bg-schedule { background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%); box-shadow: 0 8px 20px rgba(74, 0, 224, 0.3); }
+
+        /* 視窗容器 */
+        #web-viewer {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1000; display: none; flex-direction: column;
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease;
+        }
+
+        /* 頂部導航列 (Light Mode) */
+        #nav-header {
+            width: 100%; height: var(--header-height); padding-top: env(safe-area-inset-top); 
+            background-color: #0b1121; display: flex; align-items: center; justify-content: center;
+            position: relative; box-shadow: 0 1px 0 rgba(255,255,255,0.1); flex-shrink: 0; z-index: 2000;
+        }
+        #nav-title { font-size: 17px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px; }
+        
+        .close-btn-nav {
+            position: absolute; right: 15px; top: env(safe-area-inset-top); height: var(--header-height);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 5px;
+        }
+        .close-icon-circle {
+            width: 30px; height: 30px; background: rgba(255,255,255,0.15); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; color: white;
+        }
+
+        /* Dark Mode (全螢幕 + 懸浮按鈕) */
+        #web-viewer.fullscreen-mode #nav-header { display: none; }
+        #web-viewer.fullscreen-mode {
+            padding-top: env(safe-area-inset-top); 
+            background-color: #0b1121;
+        }
+        
+        #float-close-btn {
+            display: none; position: absolute;
+            top: calc(15px + env(safe-area-inset-top)); right: 20px;
+            width: 36px; height: 36px; background: rgba(0,0,0,0.5);
+            border-radius: 50%; color: white;
+            justify-content: center; align-items: center;
+            backdrop-filter: blur(4px); z-index: 3000;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+        }
+
+        /* Iframe 樣式與狀態管理 */
+        .app-frame {
+            width: 1px; min-width: 100%; flex: 1; border: none; 
+            padding-bottom: env(safe-area-inset-bottom);
+            display: none; /* 預設全部隱藏 */
+        }
+        .app-frame.active {
+            display: block;
+        }
+
+    </style>
 </head>
 <body>
 <!-- ★★★ 鎖定畫面 ★★★ -->
@@ -260,6 +237,27 @@ function forceSubscribe() {
 <div id="main-content">
     
     <div id="user-display" class="user-welcome"></div>
+
+    <!-- ★★★ 強制訂閱按鈕 (整合版) ★★★ -->
+    <div class="glass-panel">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-bell" style="color: #fcd34d; font-size: 20px;"></i>
+            <div>
+                <div style="font-size: 15px; font-weight: 700; color: white;">開啟推播通知</div>
+                <div style="font-size: 12px; color: #94a3b8;">接收最新勤務與公告</div>
+            </div>
+        </div>
+        <button onclick="forceSubscribe()" style="
+            background: transparent; 
+            border: 1px solid #3b82f6; 
+            color: #3b82f6; 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            font-size: 13px; 
+            cursor: pointer;">
+            去開啟
+        </button>
+    </div>
 
     <div class="category-title">EMS 核心系統</div>
 
@@ -327,8 +325,6 @@ function forceSubscribe() {
         <i class="fa-solid fa-xmark"></i>
     </div>
 
-    <!-- ★★★ 修改重點：雙 Iframe 架構 ★★★ -->
-    
     <!-- 1. 主系統專用 (Main Frame)：永遠保持載入狀態，不清除，不重整 -->
     <iframe id="main-frame" class="app-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
     
@@ -343,8 +339,22 @@ function forceSubscribe() {
     
     // 智慧平台的原始網址 (用於比對和預載)
     const MAIN_APP_URL = "https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec";
-    // 用於識別主系統的關鍵字 (Google Script ID 的一部分，確保準確)
     const MAIN_APP_ID_PART = "AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL";
+
+    // ★★★ 強制訂閱 JS 邏輯 ★★★
+    function forceSubscribe() {
+        var githubUrl = "https://eurekateamstar-star.github.io/my-tools/";
+        
+        // 檢查是否在 Iframe 中
+        if (window.self !== window.top) {
+            alert("為了確保能收到通知，請在新視窗中點擊「允許」！");
+            window.open(githubUrl, "_blank");
+        } else {
+            window.OneSignalDeferred.push(function(OneSignal) {
+                OneSignal.Slidedown.promptPush();
+            });
+        }
+    }
 
     window.onload = function() {
         // 防止卡死重置按鈕
@@ -391,7 +401,7 @@ function forceSubscribe() {
         mainFrame.src = targetUrl;
     }
 
-   // ★★★ 修正後的 openApp 函式 (包含傳送姓名 + 修正拼字錯誤) ★★★
+    // ★★★ 開啟 App 邏輯 (包含傳送姓名 + 修正拼字錯誤) ★★★
     function openApp(title, url, mode) {
         var viewer = document.getElementById('web-viewer');
         var mainFrame = document.getElementById('main-frame');
@@ -450,6 +460,7 @@ function forceSubscribe() {
         // 顯示視窗
         viewer.style.display = 'flex';
     }
+
     // ★★★ 關閉 App 邏輯 ★★★
     function closeApp() {
         var viewer = document.getElementById('web-viewer');
@@ -463,13 +474,11 @@ function forceSubscribe() {
         tempFrame.classList.remove('active');
         mainFrame.classList.remove('active');
 
-        // ★★★ 關鍵：清空暫存 Frame ★★★
-        // 這樣下次打開其他功能時，不會閃過上一次的畫面
-        // 而 Main Frame 則保留不動
+        // 清空暫存 Frame
         tempFrame.src = "about:blank";
     }
 
-    // --- 以下為原本的輔助功能 (保持不變) ---
+    // --- 以下為原本的輔助功能 ---
 
     function forceReset() {
         localStorage.clear();
