@@ -146,7 +146,7 @@
         .bg-schedule { background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%); box-shadow: 0 8px 20px rgba(74, 0, 224, 0.3); }
            .bg-training { background: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%); }
     .bg-book { background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); }
-
+ .bg-skill { background: linear-gradient(135deg, #FF512F 0%, #F09819 100%); box-shadow: 0 8px 20px rgba(240, 152, 25, 0.3); }
 
         /* 視窗容器 */
         #web-viewer {
@@ -262,7 +262,16 @@
             <div class="app-icon bg-book"><i class="fa-solid fa-book-medical"></i></div>
             <span class="app-name">救護手冊</span>
         </a>
-
+<!-- ★★★ 7. 修改後：單項技術 (直接開新視窗) ★★★ -->
+        <!-- 改用 a href 標籤，並加上 target="_blank" -->
+        <a href="https://ebook.nfa.gov.tw/1140526/mobile/index.html" class="app-item" target="_blank">
+            <div class="app-icon bg-skill"><i class="fa-solid fa-briefcase-medical"></i></div>
+            <span class="app-name">單項技術</span>
+        </a>
+        <a href="https://docs.google.com/spreadsheets/d/1u-iyANnz3c8Vu_OathXEX8uqSPvbgWIQqghkbpPB-wU/edit?gid=157452443#gid=157452443" class="app-item" target="_blank">
+            <div class="app-icon bg-schedule"><i class="fa-solid fa-table-list"></i></div>
+            <span class="app-name">協勤表單</span>
+        </a>
     </div> 
   
     <div class="category-title">常用工具</div>
@@ -280,10 +289,7 @@
             <div class="app-icon bg-map"><i class="fa-solid fa-map-location-dot"></i></div>
             <span class="app-name">地圖</span>
         </a>
-        <a href="https://docs.google.com/spreadsheets/d/1u-iyANnz3c8Vu_OathXEX8uqSPvbgWIQqghkbpPB-wU/edit?gid=157452443#gid=157452443" class="app-item" target="_blank">
-            <div class="app-icon bg-schedule"><i class="fa-solid fa-table-list"></i></div>
-            <span class="app-name">協勤表單</span>
-        </a>
+        
     </div>
 
 </div>
