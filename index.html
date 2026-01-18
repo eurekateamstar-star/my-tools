@@ -160,23 +160,20 @@
             display: flex; justify-content: center; align-items: center; color: white;
         }
 
-        /* ★★★ 重點修改區：全螢幕模式 (無標題列) ★★★ */
-        
-        /* 1. 全螢幕模式下，完全隱藏頂部導航列 */
+        /* 全螢幕模式 (無標題列) */
         #web-viewer.fullscreen-mode #nav-header { 
             display: none !important; 
         }
 
-        /* 2. 全螢幕模式下，移除所有內距，背景設為白色 */
         #web-viewer.fullscreen-mode {
             padding-top: 0 !important; 
             background-color: #ffffff; 
         }
         
-        /* 3. 懸浮關閉按鈕 */
+        /* 懸浮關閉按鈕 */
         #float-close-btn {
             display: none; position: absolute;
-            top: 20px; /* 固定距離頂部 20px，避免太靠邊 */
+            top: 20px; 
             right: 20px;
             width: 36px; height: 36px; background: rgba(0,0,0,0.5);
             border-radius: 50%; color: white;
@@ -186,10 +183,16 @@
             cursor: pointer;
         }
 
-        /* Iframe 樣式與狀態管理 */
+        /* ★★★ Iframe 樣式修改：移除底部白邊 ★★★ */
         .app-frame {
-            width: 1px; min-width: 100%; flex: 1; border: none; 
-            padding-bottom: env(safe-area-inset-bottom);
+            width: 100%; 
+            /* 原本有 flex:1, 但加這行確保高度填滿 */
+            height: 100%; 
+            min-width: 100%; flex: 1; border: none; 
+            
+            /* ★ 重點：移除底部安全距離，解決白邊問題 ★ */
+            padding-bottom: 0 !important; 
+            
             display: none; 
         }
         .app-frame.active {
@@ -425,7 +428,7 @@
           // 無標題列 (全螢幕) 模式
           viewer.classList.add('fullscreen-mode');
           floatBtn.style.display = 'flex';
-          activeFrame.style.backgroundColor = '#ffffff'; // 確保背景是白色，避免閃黑
+          activeFrame.style.backgroundColor = '#ffffff'; // 確保背景是白色
       }
       viewer.style.display = 'flex';
   }
