@@ -19,38 +19,51 @@
             --header-height: 50px;
         }
 
-        /* ★★★ 核彈級修正：鎖死整個頁面，禁止任何彈性滑動 ★★★ */
+        /* ★★★ 核心修正 1：改用 dvh (動態高度) 填滿螢幕 ★★★ */
         html, body {
-            position: fixed; /* 關鍵：固定定位，讓瀏覽器認為頁面不可滑動 */
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* 禁止溢出 */
-            background-color: var(--bg-color);
+            position: fixed; /* 鎖死，禁止滑動 */
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;      /* 舊瀏覽器相容 */
+            height: 100dvh;     /* 新技術：動態高度，解決黑邊 */
+            overflow: hidden;   /* 禁止溢出 */
+            background-color: var(--bg-color); /* 預設底色 */
             margin: 0; padding: 0;
-            overscroll-behavior: none; /* 雙重保險 */
+            overscroll-behavior: none;
             font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            z-index: 0;
         }
 
-        /* ★★★ 讓主畫面內容自己獨立滾動 ★★★ */
+        /* ★★★ 核心修正 2：主選單內容區 ★★★ */
         #main-content {
-            display: none; /* 預設隱藏，解鎖後顯示 */
+            display: none;
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
+            
+            /* 讓內容高度也能適應動態變化 */
+            height: 100dvh; 
+            
             overflow-y: auto; /* 允許上下滾動 */
-            overflow-x: hidden; /* 禁止左右 */
-            -webkit-overflow-scrolling: touch; /* 讓滾動滑順 */
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            
+            /* 確保內容不會被切掉，也不會有額外黑邊 */
             padding: 20px;
             padding-top: calc(20px + env(safe-area-inset-top));
-            padding-bottom: 40px; /* 底部留白，避免內容被切掉 */
+            padding-bottom: calc(20px + env(safe-area-inset-bottom)); /* 底部安全距離 */
+            
+            box-sizing: border-box; /* 確保 padding 包含在高度內 */
             opacity: 0; 
             transition: opacity 0.5s ease;
+            z-index: 1;
         }
 
         /* 鎖定畫面 */
         #lock-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; 
+            width: 100vw; height: 100dvh;
             background-color: #0b1121; z-index: 9999;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
@@ -129,19 +142,27 @@
         .bg-book { background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); }
         .bg-skill { background: linear-gradient(135deg, #FF512F 0%, #F09819 100%); }
 
-        /* ★★★ 視窗容器修正：絕對固定，禁止本體滑動 ★★★ */
+        /* ★★★ 核心修正 3：視窗容器絕對滿版，無死角 ★★★ */
         #web-viewer {
-            position: fixed; top: 0; left: 0; 
-            width: 100%; height: 100%;
-            z-index: 1000; display: none; flex-direction: column;
-            background-color: #ffffff; /* 確保背景白，不透出黑底 */
+            position: fixed; 
+            top: 0; left: 0; bottom: 0; right: 0; /* 四邊鎖死 */
+            width: 100vw; 
+            height: 100dvh; /* 動態高度，確保蓋住底部 */
+            
+            z-index: 1000; 
+            display: none; 
+            flex-direction: column;
+            background-color: #ffffff; /* 白底 */
             overscroll-behavior: none;
+            
+            /* 確保沒有任何 padding 導致黑底露出 */
+            padding: 0; 
+            margin: 0;
         }
 
-        /* 頂部導航列 (全螢幕模式下隱藏) */
         #nav-header { display: none !important; }
 
-        /* 懸浮關閉按鈕 (避開劉海 top: 60px) */
+        /* 懸浮關閉按鈕 (top: 60px) */
         #float-close-btn {
             display: none; position: absolute;
             top: 60px; right: 20px;
@@ -153,12 +174,19 @@
             cursor: pointer;
         }
 
-        /* Iframe 修正 */
+        /* Iframe 修正：高度 100%，強制區塊顯示 */
         .app-frame {
-            width: 100%; height: 100%; border: none; 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
             display: none; 
+            display: none;
         }
-        .app-frame.active { display: block; }
+        /* 只有當 active 時才顯示為 block，填滿父容器 */
+        .app-frame.active { 
+            display: block; 
+            height: 100%;
+        }
 
     </style>
 </head>
@@ -173,7 +201,7 @@
     </button>
 </div>
 
-<!-- ★★★ 主內容區 (獨立滾動) ★★★ -->
+<!-- ★★★ 主內容區 ★★★ -->
 <div id="main-content">
     <div id="user-display" class="user-welcome"></div>
     <div class="category-title">EMS 核心系統</div>
@@ -276,9 +304,8 @@
   const MAIN_APP_ID_PART = "AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL";
 
   window.onload = function() {
-      // 禁止 iOS Safari 彈性滑動的 JS 強制修正
+      // JS 強制修正：只有主選單可以滾動，其他全部禁止
       document.body.addEventListener('touchmove', function(e) {
-          // 如果目標不是在可滾動的 #main-content 內，就阻止滑動
           if (!e.target.closest('#main-content') && !e.target.closest('.app-frame')) {
               e.preventDefault();
           }
@@ -313,7 +340,6 @@
   }
 
   function openApp(title, url) {
-      // 統一全部滿版、白底、無標題
       var viewer = document.getElementById('web-viewer');
       var mainFrame = document.getElementById('main-frame');
       var tempFrame = document.getElementById('temp-frame');
