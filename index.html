@@ -3,24 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <!-- PWA 設定 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="海山救護">
     <meta name="theme-color" content="#0b1121">
+    <title>海山救護</title>
 
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon1.jpg"> 
-    <link rel="icon" type="image/jpeg" href="icon1.jpg">
-
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- LINE LIFF SDK -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-    <title>海山救護義消智慧平台入口</title>
 
     <style>
         :root {
@@ -29,44 +19,43 @@
             --header-height: 50px;
         }
 
-        /* ★★★ 核心修正：禁止滑動，但修正黑邊問題 ★★★ */
-        html {
-            /* 禁止 iOS 左右滑動回上一頁 */
-            overscroll-behavior-x: none; 
+        /* ★★★ 核彈級修正：鎖死整個頁面，禁止任何彈性滑動 ★★★ */
+        html, body {
+            position: fixed; /* 關鍵：固定定位，讓瀏覽器認為頁面不可滑動 */
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* 禁止溢出 */
             background-color: var(--bg-color);
-        }
-
-        body {
-            background-color: var(--bg-color);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            
-            /* 修正：不要強制 100%，改用 min-height，避免底部出現黑條 */
-            min-height: 100vh;
-            
-            /* 內容 padding */
-            padding: 20px;
-            padding-top: calc(20px + env(safe-area-inset-top)); 
-            
-            /* 禁止水平卷軸 */
-            overflow-x: hidden; 
-            
+            margin: 0; padding: 0;
+            overscroll-behavior: none; /* 雙重保險 */
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            color: var(--text-color);
         }
 
-        /* ★★★ 鎖定畫面 ★★★ */
+        /* ★★★ 讓主畫面內容自己獨立滾動 ★★★ */
+        #main-content {
+            display: none; /* 預設隱藏，解鎖後顯示 */
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            overflow-y: auto; /* 允許上下滾動 */
+            overflow-x: hidden; /* 禁止左右 */
+            -webkit-overflow-scrolling: touch; /* 讓滾動滑順 */
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top));
+            padding-bottom: 40px; /* 底部留白，避免內容被切掉 */
+            opacity: 0; 
+            transition: opacity 0.5s ease;
+        }
+
+        /* 鎖定畫面 */
         #lock-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #0b1121; z-index: 9999;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             transition: opacity 0.5s ease; padding: 20px; text-align: center;
-            overscroll-behavior: none; /* 鎖定畫面也禁止滑動 */
         }
-        
-        #main-content { display: none; opacity: 0; transition: opacity 0.5s ease; }
 
         .loading-spinner {
             width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1);
@@ -74,37 +63,28 @@
             animation: spin 1s linear infinite; margin-bottom: 20px;
         }
         
-        .status-text { font-size: 16px; color: #94a3b8; font-weight: 500; line-height: 1.6; }
+        .status-text { font-size: 16px; color: #94a3b8; font-weight: 500; }
         .error-id { 
             margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); 
             border-radius: 8px; font-family: monospace; user-select: text; 
             color: #f87171; border: 1px dashed #f87171;
         }
-
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* 歡迎詞 */
         .user-welcome {
-            font-size: 24px; 
-            color: #ffffff; 
-            font-weight: 700;
-            margin-bottom: 20px; 
-            margin-top: 10px;
-            padding-left: 5px;
-            letter-spacing: 0.5px;
+            font-size: 24px; color: #ffffff; font-weight: 700;
+            margin-bottom: 20px; margin-top: 10px; padding-left: 5px;
             background: linear-gradient(90deg, #ffffff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        /* 分類標題 */
         .category-title {
             font-size: 18px; font-weight: 600; color: rgba(255, 255, 255, 0.9);
             margin-bottom: 20px; margin-top: 5px; padding-left: 8px;
             border-left: 3px solid #3b82f6; line-height: 1;
         }
 
-        /* 網格排列 */
         .app-grid {
             display: grid; grid-template-columns: repeat(4, 1fr);
             row-gap: 32px; column-gap: 12px; margin-bottom: 45px;
@@ -115,14 +95,12 @@
             text-decoration: none; position: relative; cursor: pointer;
         }
 
-        /* App 圖示 */
         .app-icon {
             width: 68px; height: 68px; border-radius: 18px;
             display: flex; justify-content: center; align-items: center;
-            color: white; font-size: 28px;
-            position: relative; margin-bottom: 10px;
+            color: white; font-size: 28px; position: relative; margin-bottom: 10px;
             border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.25);
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 0.2s;
         }
         .app-icon::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -139,68 +117,34 @@
         }
 
         /* 配色 */
-        .bg-medical { background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%); box-shadow: 0 8px 20px rgba(255, 75, 43, 0.35); }
-        .bg-record { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 8px 20px rgba(118, 75, 162, 0.35); }
-        .bg-check { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); box-shadow: 0 8px 20px rgba(56, 239, 125, 0.3); }
-        .bg-exam { background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); box-shadow: 0 8px 20px rgba(245, 175, 25, 0.3); }
-        .bg-google { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 8px 20px rgba(0, 242, 254, 0.3); }
-        .bg-ai { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); box-shadow: 0 8px 20px rgba(56, 249, 215, 0.3); }
-        .bg-map { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); box-shadow: 0 8px 20px rgba(250, 112, 154, 0.3); }
-        .bg-schedule { background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%); box-shadow: 0 8px 20px rgba(74, 0, 224, 0.3); }
+        .bg-medical { background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%); }
+        .bg-record { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-check { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .bg-exam { background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); }
+        .bg-google { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .bg-ai { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .bg-map { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .bg-schedule { background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%); }
         .bg-training { background: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%); }
         .bg-book { background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); }
-        .bg-skill { background: linear-gradient(135deg, #FF512F 0%, #F09819 100%); box-shadow: 0 8px 20px rgba(240, 152, 25, 0.3); }
+        .bg-skill { background: linear-gradient(135deg, #FF512F 0%, #F09819 100%); }
 
-        /* 視窗容器 */
+        /* ★★★ 視窗容器修正：絕對固定，禁止本體滑動 ★★★ */
         #web-viewer {
             position: fixed; top: 0; left: 0; 
-            width: 100%; 
-            /* 修正：使用 100dvh (動態高度) 確保蓋住底部，無黑邊 */
-            height: 100vh;
-            height: 100dvh; 
-            
+            width: 100%; height: 100%;
             z-index: 1000; display: none; flex-direction: column;
-            background-color: var(--bg-color);
-            transition: background-color 0.3s ease;
-            
-            /* 禁止容器本身滑動 */
-            overflow: hidden; 
+            background-color: #ffffff; /* 確保背景白，不透出黑底 */
             overscroll-behavior: none;
         }
 
-        /* 頂部導航列 */
-        #nav-header {
-            width: 100%; height: var(--header-height); padding-top: env(safe-area-inset-top); 
-            background-color: #0b1121; display: flex; align-items: center; justify-content: center;
-            position: relative; box-shadow: 0 1px 0 rgba(255,255,255,0.1); flex-shrink: 0; z-index: 2000;
-        }
-        #nav-title { font-size: 17px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px; }
-        
-        .close-btn-nav {
-            position: absolute; right: 15px; top: env(safe-area-inset-top); height: var(--header-height);
-            display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 5px;
-        }
-        .close-icon-circle {
-            width: 30px; height: 30px; background: rgba(255,255,255,0.15); border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; color: white;
-        }
+        /* 頂部導航列 (全螢幕模式下隱藏) */
+        #nav-header { display: none !important; }
 
-        /* 全螢幕模式 */
-        #web-viewer.fullscreen-mode #nav-header { 
-            display: none !important; 
-        }
-
-        #web-viewer.fullscreen-mode {
-            padding-top: 0 !important; 
-            background-color: #ffffff; 
-        }
-        
-        /* 懸浮關閉按鈕 */
+        /* 懸浮關閉按鈕 (避開劉海 top: 60px) */
         #float-close-btn {
             display: none; position: absolute;
-            /* 保持您的要求：60px 避開劉海 */
-            top: 60px; 
-            right: 20px;
+            top: 60px; right: 20px;
             width: 36px; height: 36px; background: rgba(0,0,0,0.5);
             border-radius: 50%; color: white;
             justify-content: center; align-items: center;
@@ -209,24 +153,18 @@
             cursor: pointer;
         }
 
-        /* Iframe 樣式 */
+        /* Iframe 修正 */
         .app-frame {
-            width: 100%; 
-            height: 100%; 
-            min-width: 100%; flex: 1; border: none; 
-            padding-bottom: 0 !important; 
-            display: none; 
-            /* 修正：使用 block 避免行內元素造成的底部微小白邊 */
+            width: 100%; height: 100%; border: none; 
             display: none; 
         }
-        .app-frame.active {
-            display: block; 
-        }
+        .app-frame.active { display: block; }
 
     </style>
 </head>
 <body>
-<!-- ★★★ 鎖定畫面 ★★★ -->
+
+<!-- 鎖定畫面 -->
 <div id="lock-screen">
     <div class="loading-spinner" id="spinner"></div>
     <div class="status-text" id="status-text">系統驗證中...</div>
@@ -235,29 +173,29 @@
     </button>
 </div>
 
-<!-- ★★★ 主要內容區 ★★★ -->
+<!-- ★★★ 主內容區 (獨立滾動) ★★★ -->
 <div id="main-content">
     <div id="user-display" class="user-welcome"></div>
     <div class="category-title">EMS 核心系統</div>
 
     <div class="app-grid">
-        <div class="app-item" onclick="openApp('智慧平台', 'https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', 'dark')">
+        <div class="app-item" onclick="openApp('智慧平台', 'https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec')">
             <div class="app-icon bg-medical"><i class="fa-solid fa-truck-medical"></i></div>
             <span class="app-name">智慧平台</span>
         </div>
-        <div class="app-item" onclick="openApp('協勤記錄', 'https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', 'dark')">
+        <div class="app-item" onclick="openApp('協勤記錄', 'https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec')">
             <div class="app-icon bg-record"><i class="fa-solid fa-file-signature"></i></div>
             <span class="app-name">協勤記錄</span>
         </div>
-        <div class="app-item" onclick="openApp('點班系統', 'https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', 'dark')">
+        <div class="app-item" onclick="openApp('點班系統', 'https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec')">
             <div class="app-icon bg-check"><i class="fa-solid fa-clipboard-check"></i></div>
             <span class="app-name">點班系統</span>
         </div>
-        <div class="app-item" onclick="openApp('新人考核', 'https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', 'dark')">
+        <div class="app-item" onclick="openApp('新人考核', 'https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec')">
             <div class="app-icon bg-exam"><i class="fa-solid fa-user-graduate"></i></div>
             <span class="app-name">新人考核</span>
         </div>
-        <div class="app-item" onclick="openApp('常訓公佈欄', 'https://script.google.com/macros/s/AKfycbzKVXLlDys-Sx33LOWAHvjGo5CoBebzzVKmxgsXFqstoP-GR9uxxaJ45vRcqwTPZl5I/exec', 'dark')">
+        <div class="app-item" onclick="openApp('常訓公佈欄', 'https://script.google.com/macros/s/AKfycbzKVXLlDys-Sx33LOWAHvjGo5CoBebzzVKmxgsXFqstoP-GR9uxxaJ45vRcqwTPZl5I/exec')">
             <div class="app-icon bg-training"><i class="fa-solid fa-bullhorn"></i></div>
             <span class="app-name">常訓公佈欄</span>
         </div>
@@ -276,7 +214,6 @@
     </div> 
   
     <div class="category-title">常用工具</div>
-
     <div class="app-grid">
         <a href="https://www.google.com" class="app-item" target="_blank">
             <div class="app-icon bg-google"><i class="fa-brands fa-google"></i></div>
@@ -295,48 +232,31 @@
 
 <!-- 全螢幕檢視器 -->
 <div id="web-viewer">
-    <div id="nav-header">
-        <div id="nav-title">標題</div>
-        <div class="close-btn-nav" onclick="closeApp()">
-            <div class="close-icon-circle"><i class="fa-solid fa-xmark"></i></div>
-        </div>
-    </div>
-    
     <!-- 懸浮關閉按鈕 -->
     <div id="float-close-btn" onclick="closeApp()">
         <i class="fa-solid fa-xmark"></i>
     </div>
-
     <iframe id="main-frame" class="app-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
     <iframe id="temp-frame" class="app-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
 </div>
 
 <script>
-  // --- OneSignal 與按鈕功能 ---
+  // --- OneSignal ---
   const GITHUB_PAGE_URL = "https://eurekateamstar-star.github.io/my-tools/";
-
   function forceSubscribe() {
       if (window.self !== window.top) {
-          alert("為了能順利接收通知，系統將開啟新視窗，請在新視窗中點擊「允許」！");
+          alert("通知設定：即將開啟新視窗，請點擊「允許」！");
           window.open(GITHUB_PAGE_URL, "_blank");
-      } 
-      else {
-          if (typeof OneSignal !== 'undefined') {
-              OneSignal.Slidedown.promptPush();
-          } else {
-              alert("通知系統載入中... 請稍後再試。");
-              location.reload();
-          }
+      } else {
+          if (typeof OneSignal !== 'undefined') OneSignal.Slidedown.promptPush();
+          else { alert("載入中..."); location.reload(); }
       }
   }
-
-  // 只在外部環境載入 OneSignal
   if (window.self === window.top) {
       var script = document.createElement('script');
       script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
       script.defer = true;
       document.head.appendChild(script);
-
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       window.OneSignalDeferred.push(function(OneSignal) {
         OneSignal.init({
@@ -349,13 +269,21 @@
       });
   }
 
-  // --- 系統核心邏輯 ---
+  // --- 系統核心 ---
   const MY_LIFF_ID = "2008830494-0OA0heXb";
   const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
   const MAIN_APP_URL = "https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec";
   const MAIN_APP_ID_PART = "AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL";
 
   window.onload = function() {
+      // 禁止 iOS Safari 彈性滑動的 JS 強制修正
+      document.body.addEventListener('touchmove', function(e) {
+          // 如果目標不是在可滾動的 #main-content 內，就阻止滑動
+          if (!e.target.closest('#main-content') && !e.target.closest('.app-frame')) {
+              e.preventDefault();
+          }
+      }, { passive: false });
+
       setTimeout(() => {
           const resetBtn = document.getElementById('reset-btn');
           if(resetBtn && document.getElementById('lock-screen').style.display !== 'none') {
@@ -370,7 +298,6 @@
       if (isAuthorized && savedUid && savedUid !== "null" && savedUid !== "undefined") {
           const savedName = localStorage.getItem('userName') || '';
           if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
-          
           unlockScreen();
           preloadMainApp(savedUid);
       } else {
@@ -381,48 +308,35 @@
   function preloadMainApp(userId) {
       const mainFrame = document.getElementById('main-frame');
       let targetUrl = MAIN_APP_URL;
-      if (targetUrl.includes('?')) targetUrl += "&uid=" + userId;
-      else targetUrl += "?uid=" + userId;
+      targetUrl += (targetUrl.includes('?') ? "&" : "?") + "uid=" + userId;
       mainFrame.src = targetUrl;
   }
 
-  function openApp(title, url, mode) {
+  function openApp(title, url) {
+      // 統一全部滿版、白底、無標題
       var viewer = document.getElementById('web-viewer');
       var mainFrame = document.getElementById('main-frame');
       var tempFrame = document.getElementById('temp-frame');
-      var navTitle = document.getElementById('nav-title');
       var floatBtn = document.getElementById('float-close-btn');
       var userId = localStorage.getItem('currentUserId');
       var userName = localStorage.getItem('userName') || '';
 
-      navTitle.innerText = title;
       const isMainApp = url.includes(MAIN_APP_ID_PART);
       
-      let activeFrame;
-
       if (isMainApp) {
           mainFrame.classList.add('active');
           tempFrame.classList.remove('active');
-          activeFrame = mainFrame;
       } else {
           mainFrame.classList.remove('active');
           tempFrame.classList.add('active');
-          activeFrame = tempFrame;
-
           let finalUrl = url;
-          let separator = finalUrl.includes('?') ? '&' : '?';
-
           if (userId && userId !== "null") {
-              finalUrl += separator + "uid=" + userId + "&name=" + encodeURIComponent(userName);
+              finalUrl += (finalUrl.includes('?') ? '&' : '?') + "uid=" + userId + "&name=" + encodeURIComponent(userName);
           }
           tempFrame.src = finalUrl;
       }
 
-      // 全部強制全螢幕模式
-      viewer.classList.add('fullscreen-mode');
       floatBtn.style.display = 'flex';
-      activeFrame.style.backgroundColor = '#ffffff'; 
-
       viewer.style.display = 'flex';
   }
 
@@ -443,19 +357,13 @@
   }
 
   function initializeLiff() {
-      liff.init({ liffId: MY_LIFF_ID })
-          .then(() => {
-              if (liff.isLoggedIn()) {
-                  checkPermission();
-              } else {
-                  liff.login();
-              }
-          })
-          .catch(err => {
-              console.error(err);
-              document.getElementById('status-text').innerText = "初始化失敗";
-              document.getElementById('reset-btn').style.display = 'block';
-          });
+      liff.init({ liffId: MY_LIFF_ID }).then(() => {
+          if (liff.isLoggedIn()) checkPermission(); else liff.login();
+      }).catch(err => {
+          console.error(err);
+          document.getElementById('status-text').innerText = "初始化失敗";
+          document.getElementById('reset-btn').style.display = 'block';
+      });
   }
 
   function checkPermission() {
@@ -463,7 +371,7 @@
       liff.getProfile().then(profile => {
           const userId = profile.userId;
           fetch(CHECK_API_URL + "?userId=" + userId)
-          .then(response => response.json())
+          .then(r => r.json())
           .then(data => {
               if (data.allowed) {
                   localStorage.setItem('isAuthorized', 'true');
@@ -478,7 +386,7 @@
                   document.getElementById('reset-btn').style.display = 'block';
               }
           })
-          .catch(err => {
+          .catch(() => {
                document.getElementById('status-text').innerHTML = "連線錯誤";
                document.getElementById('reset-btn').style.display = 'block';
           });
