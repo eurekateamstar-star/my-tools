@@ -29,16 +29,29 @@
             --header-height: 50px;
         }
 
-        body {
+        /* ★★★ 重點修改：禁止左右滑動導致的白屏/返回上一頁 ★★★ */
+        html, body {
             background-color: var(--bg-color);
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            padding-top: calc(20px + env(safe-area-inset-top)); 
+            padding: 0; /* 這裡先歸零，下面再針對 body 設定 */
+            
+            /* 關鍵：禁止水平滾動與彈性效果 */
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden; 
+            overscroll-behavior-x: none; /* 禁止 iOS 左滑回上一頁的手勢 */
+            
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             color: var(--text-color);
-            min-height: 100vh;
+        }
+
+        body {
+            /* 針對內容的 padding */
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top)); 
+            box-sizing: border-box; /* 確保 padding 不會撐爆寬度 */
         }
 
         /* ★★★ 鎖定畫面 ★★★ */
@@ -48,6 +61,7 @@
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             transition: opacity 0.5s ease; padding: 20px; text-align: center;
+            overscroll-behavior: none; /* 鎖定畫面也禁止滑動 */
         }
         
         #main-content { display: none; opacity: 0; transition: opacity 0.5s ease; }
@@ -137,10 +151,14 @@
 
         /* 視窗容器 */
         #web-viewer {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1000; display: none; flex-direction: column;
             background-color: var(--bg-color);
             transition: background-color 0.3s ease;
+            
+            /* 確保視窗容器本身也禁止溢出 */
+            overflow: hidden; 
+            overscroll-behavior: none;
         }
 
         /* 頂部導航列 */
@@ -160,7 +178,7 @@
             display: flex; justify-content: center; align-items: center; color: white;
         }
 
-        /* ★★★ 全螢幕模式 (無標題列、無邊框) ★★★ */
+        /* 全螢幕模式 */
         #web-viewer.fullscreen-mode #nav-header { 
             display: none !important; 
         }
@@ -170,10 +188,9 @@
             background-color: #ffffff; 
         }
         
-        /* ★★★ 懸浮關閉按鈕：位置修改 ★★★ */
+        /* 懸浮關閉按鈕：位置修改 (距頂部 60px 避開瀏海) */
         #float-close-btn {
             display: none; position: absolute;
-            /* 原本是 20px，改成 60px 避開瀏海 */
             top: 60px; 
             right: 20px;
             width: 36px; height: 36px; background: rgba(0,0,0,0.5);
