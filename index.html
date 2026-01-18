@@ -29,29 +29,31 @@
             --header-height: 50px;
         }
 
-        /* ★★★ 重點修改：禁止左右滑動導致的白屏/返回上一頁 ★★★ */
-        html, body {
+        /* ★★★ 核心修正：禁止滑動，但修正黑邊問題 ★★★ */
+        html {
+            /* 禁止 iOS 左右滑動回上一頁 */
+            overscroll-behavior-x: none; 
+            background-color: var(--bg-color);
+        }
+
+        body {
             background-color: var(--bg-color);
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            padding: 0; /* 這裡先歸零，下面再針對 body 設定 */
             
-            /* 關鍵：禁止水平滾動與彈性效果 */
-            width: 100%;
-            height: 100%;
+            /* 修正：不要強制 100%，改用 min-height，避免底部出現黑條 */
+            min-height: 100vh;
+            
+            /* 內容 padding */
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top)); 
+            
+            /* 禁止水平卷軸 */
             overflow-x: hidden; 
-            overscroll-behavior-x: none; /* 禁止 iOS 左滑回上一頁的手勢 */
             
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             color: var(--text-color);
-        }
-
-        body {
-            /* 針對內容的 padding */
-            padding: 20px;
-            padding-top: calc(20px + env(safe-area-inset-top)); 
-            box-sizing: border-box; /* 確保 padding 不會撐爆寬度 */
         }
 
         /* ★★★ 鎖定畫面 ★★★ */
@@ -151,12 +153,17 @@
 
         /* 視窗容器 */
         #web-viewer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; 
+            width: 100%; 
+            /* 修正：使用 100dvh (動態高度) 確保蓋住底部，無黑邊 */
+            height: 100vh;
+            height: 100dvh; 
+            
             z-index: 1000; display: none; flex-direction: column;
             background-color: var(--bg-color);
             transition: background-color 0.3s ease;
             
-            /* 確保視窗容器本身也禁止溢出 */
+            /* 禁止容器本身滑動 */
             overflow: hidden; 
             overscroll-behavior: none;
         }
@@ -188,9 +195,10 @@
             background-color: #ffffff; 
         }
         
-        /* 懸浮關閉按鈕：位置修改 (距頂部 60px 避開瀏海) */
+        /* 懸浮關閉按鈕 */
         #float-close-btn {
             display: none; position: absolute;
+            /* 保持您的要求：60px 避開劉海 */
             top: 60px; 
             right: 20px;
             width: 36px; height: 36px; background: rgba(0,0,0,0.5);
@@ -201,14 +209,18 @@
             cursor: pointer;
         }
 
-        /* Iframe 樣式：滿版無縫 */
+        /* Iframe 樣式 */
         .app-frame {
-            width: 100%; height: 100%; min-width: 100%; flex: 1; border: none; 
+            width: 100%; 
+            height: 100%; 
+            min-width: 100%; flex: 1; border: none; 
             padding-bottom: 0 !important; 
+            display: none; 
+            /* 修正：使用 block 避免行內元素造成的底部微小白邊 */
             display: none; 
         }
         .app-frame.active {
-            display: block;
+            display: block; 
         }
 
     </style>
