@@ -143,7 +143,7 @@
             transition: background-color 0.3s ease;
         }
 
-        /* 頂部導航列 (預設設定，但在全螢幕模式下會被強制隱藏) */
+        /* 頂部導航列 */
         #nav-header {
             width: 100%; height: var(--header-height); padding-top: env(safe-area-inset-top); 
             background-color: #0b1121; display: flex; align-items: center; justify-content: center;
@@ -160,7 +160,7 @@
             display: flex; justify-content: center; align-items: center; color: white;
         }
 
-        /* ★★★ 全螢幕模式 (無標題列、無上下黑白邊) ★★★ */
+        /* ★★★ 全螢幕模式 (無標題列、無邊框) ★★★ */
         #web-viewer.fullscreen-mode #nav-header { 
             display: none !important; 
         }
@@ -170,10 +170,11 @@
             background-color: #ffffff; 
         }
         
-        /* 懸浮關閉按鈕 */
+        /* ★★★ 懸浮關閉按鈕：位置修改 ★★★ */
         #float-close-btn {
             display: none; position: absolute;
-            top: 20px; 
+            /* 原本是 20px，改成 60px 避開瀏海 */
+            top: 60px; 
             right: 20px;
             width: 36px; height: 36px; background: rgba(0,0,0,0.5);
             border-radius: 50%; color: white;
@@ -183,12 +184,10 @@
             cursor: pointer;
         }
 
-        /* Iframe 樣式：高度100%、移除底部內距 */
+        /* Iframe 樣式：滿版無縫 */
         .app-frame {
-            width: 100%; 
-            height: 100%; 
-            min-width: 100%; flex: 1; border: none; 
-            padding-bottom: 0 !important; /* 解決底部白邊 */
+            width: 100%; height: 100%; min-width: 100%; flex: 1; border: none; 
+            padding-bottom: 0 !important; 
             display: none; 
         }
         .app-frame.active {
@@ -202,8 +201,6 @@
 <div id="lock-screen">
     <div class="loading-spinner" id="spinner"></div>
     <div class="status-text" id="status-text">系統驗證中...</div>
-    
-    <!-- 重置按鈕：防止卡死 -->
     <button id="reset-btn" onclick="forceReset()" style="display:none; margin-top:20px; padding:10px 20px; background:#ef4444; color:white; border:none; border-radius:50px; font-weight:bold; cursor:pointer;">
         <i class="fa-solid fa-rotate-right"></i> 重置系統
     </button>
@@ -211,50 +208,34 @@
 
 <!-- ★★★ 主要內容區 ★★★ -->
 <div id="main-content">
-    
     <div id="user-display" class="user-welcome"></div>
-
     <div class="category-title">EMS 核心系統</div>
 
-    <!-- App 網格容器 -->
     <div class="app-grid">
-        
-        <!-- 1. 智慧平台 (參數: dark -> 全螢幕) -->
         <div class="app-item" onclick="openApp('智慧平台', 'https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec', 'dark')">
             <div class="app-icon bg-medical"><i class="fa-solid fa-truck-medical"></i></div>
             <span class="app-name">智慧平台</span>
         </div>
-
-        <!-- 2. 協勤記錄 (已改為全螢幕) -->
         <div class="app-item" onclick="openApp('協勤記錄', 'https://script.google.com/macros/s/AKfycby2sK2oLidlSoDQkrBexbS_geFJrHZy-Vw99fONEXcB3jDbRc48B4p6u4uo-DK6Qmcf/exec', 'dark')">
             <div class="app-icon bg-record"><i class="fa-solid fa-file-signature"></i></div>
             <span class="app-name">協勤記錄</span>
         </div>
-
-        <!-- 3. 點班系統 (已改為全螢幕) -->
         <div class="app-item" onclick="openApp('點班系統', 'https://script.google.com/macros/s/AKfycbzFy5cWirymP-7oQh8ZsuNS-9RdQy0fZkk3j4W8_Ib_OXokksBreQeKz2h_kF7iAr73/exec', 'dark')">
             <div class="app-icon bg-check"><i class="fa-solid fa-clipboard-check"></i></div>
             <span class="app-name">點班系統</span>
         </div>
-
-        <!-- 4. 新人考核 (已改為全螢幕) -->
         <div class="app-item" onclick="openApp('新人考核', 'https://script.google.com/macros/s/AKfycbwoO26nrnkPl53dnqbmky7Btct6l6O2Mj3-Tut9sccaW8OFVaJwYjhZxEbhJvhQDUF6yg/exec', 'dark')">
             <div class="app-icon bg-exam"><i class="fa-solid fa-user-graduate"></i></div>
             <span class="app-name">新人考核</span>
         </div>
-
-        <!-- 5. 常訓公佈欄 (已改為全螢幕) -->
         <div class="app-item" onclick="openApp('常訓公佈欄', 'https://script.google.com/macros/s/AKfycbzKVXLlDys-Sx33LOWAHvjGo5CoBebzzVKmxgsXFqstoP-GR9uxxaJ45vRcqwTPZl5I/exec', 'dark')">
             <div class="app-icon bg-training"><i class="fa-solid fa-bullhorn"></i></div>
             <span class="app-name">常訓公佈欄</span>
         </div>
-
-        <!-- 外連連結 (這些本身就是開新視窗全螢幕) -->
         <a href="https://ebook.nfa.gov.tw/1140527/mobile/index.html" class="app-item" target="_blank">
             <div class="app-icon bg-book"><i class="fa-solid fa-book-medical"></i></div>
             <span class="app-name">救護手冊</span>
         </a>
-
         <a href="https://ebook.nfa.gov.tw/1140526/mobile/index.html" class="app-item" target="_blank">
             <div class="app-icon bg-skill"><i class="fa-solid fa-briefcase-medical"></i></div>
             <span class="app-name">單項技術</span>
@@ -281,30 +262,24 @@
             <span class="app-name">地圖</span>
         </a>
     </div>
-
 </div>
 
 <!-- 全螢幕檢視器 -->
 <div id="web-viewer">
-    <!-- 頂部導航列 (所有功能都全螢幕時，這塊其實不會顯示了) -->
     <div id="nav-header">
         <div id="nav-title">標題</div>
         <div class="close-btn-nav" onclick="closeApp()">
             <div class="close-icon-circle"><i class="fa-solid fa-xmark"></i></div>
         </div>
     </div>
-
-    <!-- 懸浮關閉按鈕 (所有功能都會顯示這個) -->
+    
+    <!-- 懸浮關閉按鈕 -->
     <div id="float-close-btn" onclick="closeApp()">
         <i class="fa-solid fa-xmark"></i>
     </div>
 
-    <!-- 1. 主系統專用 (Main Frame) -->
     <iframe id="main-frame" class="app-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
-    
-    <!-- 2. 臨時視窗 (Temp Frame) -->
     <iframe id="temp-frame" class="app-frame" src="" allow="camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;"></iframe>
-
 </div>
 
 <script>
@@ -414,17 +389,11 @@
           tempFrame.src = finalUrl;
       }
 
-      // 因為現在全部都強制用 dark 模式開啟，這裡的判斷會全部跑到 else
-      if (mode === 'light') {
-          viewer.classList.remove('fullscreen-mode');
-          floatBtn.style.display = 'none';
-          activeFrame.style.backgroundColor = '#ffffff'; 
-      } else {
-          // 強制進入全螢幕模式
-          viewer.classList.add('fullscreen-mode');
-          floatBtn.style.display = 'flex';
-          activeFrame.style.backgroundColor = '#ffffff'; 
-      }
+      // 全部強制全螢幕模式
+      viewer.classList.add('fullscreen-mode');
+      floatBtn.style.display = 'flex';
+      activeFrame.style.backgroundColor = '#ffffff'; 
+
       viewer.style.display = 'flex';
   }
 
