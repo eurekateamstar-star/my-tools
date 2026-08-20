@@ -17,6 +17,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- LINE LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
     <title>海山救護義消智慧平台入口</title>
 
     <style>
@@ -208,7 +211,7 @@
 <!-- ★★★ 鎖定畫面 ★★★ -->
 <div id="lock-screen">
     <div class="loading-spinner" id="spinner"></div>
-    <div class="status-text" id="status-text">系統載入中...</div>
+    <div class="status-text" id="status-text">系統驗證中...</div>
     
     <!-- 重置按鈕：防止卡死 -->
     <button id="reset-btn" onclick="forceReset()" style="display:none; margin-top:20px; padding:10px 20px; background:#ef4444; color:white; border:none; border-radius:50px; font-weight:bold; cursor:pointer;">
@@ -219,7 +222,7 @@
 <!-- ★★★ 主要內容區 ★★★ -->
 <div id="main-content">
     
-    <div id="user-display" class="user-welcome">海山救護義消智慧平台</div>
+    <div id="user-display" class="user-welcome"></div>
 
     <div class="category-title">EMS 核心系統</div>
 
@@ -351,18 +354,40 @@
   }
 
   // --- 系統核心邏輯 ---
+  const MY_LIFF_ID = "2008830494-0OA0heXb";
+  const CHECK_API_URL = "https://script.google.com/macros/s/AKfycbzM_veXLJhRI5DmO3zd2Mraw_LSr08_9-TXN4gbNVuBmZpe1SOSf_rWciiUVqzjF8qO/exec"; 
   const MAIN_APP_URL = "https://script.google.com/macros/s/AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL/exec";
   const MAIN_APP_ID_PART = "AKfycbyLGjirgVZkmzKzWWQGzGMo3C8EQCZoc3Vl_Ka793XObKin9Hy-YCR6Mfp3OUFQaIYL";
 
   window.onload = function() {
-      // 移除原有的 LINE 驗證與登入流程，直接解鎖畫面
-      setTimeout(unlockScreen, 200);
-      preloadMainApp();
+      setTimeout(() => {
+          const resetBtn = document.getElementById('reset-btn');
+          if(resetBtn && document.getElementById('lock-screen').style.display !== 'none') {
+              resetBtn.style.display = 'block';
+              document.getElementById('status-text').innerText = "連線似乎有問題...";
+          }
+      }, 3000);
+
+      const isAuthorized = localStorage.getItem('isAuthorized') === 'true';
+      const savedUid = localStorage.getItem('currentUserId');
+
+      if (isAuthorized && savedUid && savedUid !== "null" && savedUid !== "undefined") {
+          const savedName = localStorage.getItem('userName') || '';
+          if(savedName) document.getElementById('user-display').innerText = "Hi, " + savedName;
+
+          unlockScreen();
+          preloadMainApp(savedUid);
+      } else {
+          initializeLiff();
+      }
   };
 
-  function preloadMainApp() {
+  function preloadMainApp(userId) {
       const mainFrame = document.getElementById('main-frame');
-      mainFrame.src = MAIN_APP_URL;
+      let targetUrl = MAIN_APP_URL;
+      if (targetUrl.includes('?')) targetUrl += "&uid=" + userId;
+      else targetUrl += "?uid=" + userId;
+      mainFrame.src = targetUrl;
   }
 
   // ★★★ 重點修改：openApp 改為動態生成 iframe ★★★
@@ -371,6 +396,8 @@
       var mainFrame = document.getElementById('main-frame');
       var navTitle = document.getElementById('nav-title');
       var floatBtn = document.getElementById('float-close-btn');
+      var userId = localStorage.getItem('currentUserId');
+      var userName = localStorage.getItem('userName') || '';
 
       navTitle.innerText = title;
       const isMainApp = url.includes(MAIN_APP_ID_PART);
@@ -394,7 +421,13 @@
           newFrame.id = 'dynamic-temp-frame';
           newFrame.className = 'app-frame active';
           newFrame.allow = "camera *; microphone *; geolocation *; fullscreen *; autoplay *; encrypted-media *; picture-in-picture *;";
-          newFrame.src = url;
+          
+          let finalUrl = url;
+          let separator = finalUrl.includes('?') ? '&' : '?';
+          if (userId && userId !== "null") {
+              finalUrl += separator + "uid=" + userId + "&name=" + encodeURIComponent(userName);
+          }
+          newFrame.src = finalUrl;
           
           // 3. 加入容器
           viewer.appendChild(newFrame);
@@ -427,6 +460,49 @@
       localStorage.clear();
       alert("系統已重置，將重新載入。");
       window.location.href = window.location.href.split('?')[0];
+  }
+
+  function initializeLiff() {
+      liff.init({ liffId: MY_LIFF_ID })
+          .then(() => {
+              if (liff.isLoggedIn()) {
+                  checkPermission();
+              } else {
+                  liff.login();
+              }
+          })
+          .catch(err => {
+              console.error(err);
+              document.getElementById('status-text').innerText = "初始化失敗";
+              document.getElementById('reset-btn').style.display = 'block';
+          });
+  }
+
+  function checkPermission() {
+      document.getElementById('status-text').innerText = "正在確認權限...";
+      liff.getProfile().then(profile => {
+          const userId = profile.userId;
+          fetch(CHECK_API_URL + "?userId=" + userId)
+          .then(response => response.json())
+          .then(data => {
+              if (data.allowed) {
+                  localStorage.setItem('isAuthorized', 'true');
+                  localStorage.setItem('userName', data.name);
+                  localStorage.setItem('currentUserId', userId); 
+                  document.getElementById('user-display').innerText = "Hi, " + data.name;
+                  unlockScreen();
+                  preloadMainApp(userId);
+              } else {
+                  document.getElementById('spinner').style.display = 'none';
+                  document.getElementById('status-text').innerHTML = "⚠️ 無權限<br>ID: <div class='error-id'>" + userId + "</div>";
+                  document.getElementById('reset-btn').style.display = 'block';
+              }
+          })
+          .catch(err => {
+               document.getElementById('status-text').innerHTML = "連線錯誤";
+               document.getElementById('reset-btn').style.display = 'block';
+          });
+      });
   }
 
   function unlockScreen() {
